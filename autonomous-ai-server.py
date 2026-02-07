@@ -697,7 +697,7 @@ _discord_token = os.getenv("DISCORD_BOT_TOKEN", "")
 if _discord_token and _discord_token != "your_token_here":
     discord_bot = DiscordBot(claude)
 
-autonomous_engine = AutonomousEngine(claude, context_collector, discord_bot)
+autonomous_engine = AutonomousEngine(claude, context_collector, discord_bot=discord_bot)
 
 
 # Request/Response models
