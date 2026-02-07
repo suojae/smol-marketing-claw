@@ -41,6 +41,14 @@ CONFIG = {
     "check_interval": 30 * 60,  # 30 minutes in seconds
     "autonomous_mode": True,
     "discord_webhook_url": os.getenv("DISCORD_WEBHOOK_URL", ""),  # Set via environment variable
+    "usage_limits": {
+        "max_calls_per_minute": 5,
+        "max_calls_per_hour": 20,
+        "max_calls_per_day": 500,
+        "min_call_interval_seconds": 5,
+        "warning_threshold_pct": 80,
+        "paused": False,
+    },
 }
 
 
@@ -124,13 +132,138 @@ class ContextCollector:
 
 
 # ============================================
+# Usage Tracker (토큰 사용량 안전장치) 🦞
+# ============================================
+class UsageLimitExceeded(Exception):
+    """Raised when a usage limit is exceeded"""
+    pass
+
+
+class UsageTracker:
+    """Tracks Claude CLI call usage and enforces rate limits"""
+
+    def __init__(self, usage_file: str = "memory/usage.json"):
+        self.usage_file = Path(usage_file)
+        self.usage_file.parent.mkdir(exist_ok=True)
+        self._data = self._load()
+
+    def _load(self) -> Dict[str, Any]:
+        """Load usage data from file"""
+        if self.usage_file.exists():
+            try:
+                with open(self.usage_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+        return {"calls": [], "total_calls": 0}
+
+    def _save(self):
+        """Persist usage data to file"""
+        try:
+            with open(self.usage_file, "w", encoding="utf-8") as f:
+                json.dump(self._data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"⚠️ Failed to save usage data: {e}")
+
+    def _calls_since(self, seconds: float) -> int:
+        """Count calls within the last N seconds"""
+        cutoff = (datetime.now() - timedelta(seconds=seconds)).isoformat()
+        return sum(1 for ts in self._data["calls"] if ts > cutoff)
+
+    def _cleanup_old_calls(self):
+        """Remove call timestamps older than 24 hours"""
+        cutoff = (datetime.now() - timedelta(hours=24)).isoformat()
+        self._data["calls"] = [ts for ts in self._data["calls"] if ts > cutoff]
+
+    def check_limits(self):
+        """Check all usage limits before a call. Raises UsageLimitExceeded if any limit is hit."""
+        limits = CONFIG["usage_limits"]
+
+        # Check if paused
+        if limits.get("paused", False):
+            raise UsageLimitExceeded("Usage is paused by configuration")
+
+        # Check minimum interval (cooldown)
+        min_interval = limits["min_call_interval_seconds"]
+        if self._data["calls"]:
+            last_call = self._data["calls"][-1]
+            elapsed = (datetime.now() - datetime.fromisoformat(last_call)).total_seconds()
+            if elapsed < min_interval:
+                raise UsageLimitExceeded(
+                    f"Cooldown: {min_interval - elapsed:.1f}s remaining "
+                    f"(min interval: {min_interval}s)"
+                )
+
+        # Check per-minute limit
+        per_minute = self._calls_since(60)
+        if per_minute >= limits["max_calls_per_minute"]:
+            raise UsageLimitExceeded(
+                f"Per-minute limit reached: {per_minute}/{limits['max_calls_per_minute']}"
+            )
+
+        # Check per-hour limit
+        per_hour = self._calls_since(3600)
+        if per_hour >= limits["max_calls_per_hour"]:
+            raise UsageLimitExceeded(
+                f"Per-hour limit reached: {per_hour}/{limits['max_calls_per_hour']}"
+            )
+
+        # Check daily limit
+        per_day = self._calls_since(86400)
+        if per_day >= limits["max_calls_per_day"]:
+            raise UsageLimitExceeded(
+                f"Daily limit reached: {per_day}/{limits['max_calls_per_day']}"
+            )
+
+    def record_call(self):
+        """Record a successful call"""
+        self._cleanup_old_calls()
+        self._data["calls"].append(datetime.now().isoformat())
+        self._data["total_calls"] = self._data.get("total_calls", 0) + 1
+        self._save()
+
+    def get_warning(self) -> Optional[str]:
+        """Return a warning message if daily usage exceeds the threshold percentage"""
+        limits = CONFIG["usage_limits"]
+        per_day = self._calls_since(86400)
+        threshold = limits["max_calls_per_day"] * limits["warning_threshold_pct"] / 100
+
+        if per_day >= threshold:
+            return (
+                f"⚠️ Usage warning: {per_day}/{limits['max_calls_per_day']} "
+                f"daily calls used ({per_day * 100 // limits['max_calls_per_day']}%)"
+            )
+        return None
+
+    def get_status(self) -> Dict[str, Any]:
+        """Return current usage stats for the /status endpoint"""
+        limits = CONFIG["usage_limits"]
+        per_minute = self._calls_since(60)
+        per_hour = self._calls_since(3600)
+        per_day = self._calls_since(86400)
+
+        return {
+            "calls_today": per_day,
+            "calls_this_hour": per_hour,
+            "calls_this_minute": per_minute,
+            "limits": {
+                "per_minute": limits["max_calls_per_minute"],
+                "per_hour": limits["max_calls_per_hour"],
+                "per_day": limits["max_calls_per_day"],
+            },
+            "paused": limits.get("paused", False),
+            "total_calls_all_time": self._data.get("total_calls", 0),
+        }
+
+
+# ============================================
 # Claude Executor
 # ============================================
 class ClaudeExecutor:
     """Executes Claude CLI commands"""
 
     def __init__(self):
-        pass
+        self.usage_tracker = UsageTracker()
 
     async def execute(
         self,
@@ -139,6 +272,9 @@ class ClaudeExecutor:
         session_id: Optional[str] = None,
     ) -> str:
         """Execute Claude CLI command"""
+        # Check usage limits before executing
+        self.usage_tracker.check_limits()
+
         print(f"[{datetime.now().isoformat()}] 📤 Executing")
 
         args = [
@@ -172,6 +308,10 @@ class ClaudeExecutor:
 
             if result.returncode == 0:
                 print(f"[{datetime.now().isoformat()}] 📥 Completed")
+                self.usage_tracker.record_call()
+                warning = self.usage_tracker.get_warning()
+                if warning:
+                    print(warning)
                 return stdout.decode("utf-8").strip()
             else:
                 raise Exception(f"Exit code {result.returncode}: {stderr.decode()}")
@@ -607,6 +747,11 @@ Git 상태: {git_status}
             self._session_call_count += 1
             print(f"🤖 AI 응답: {response}")
 
+            # Check usage warning and send Discord alert
+            usage_warning = self.claude.usage_tracker.get_warning()
+            if usage_warning:
+                await self.notify_user(usage_warning)
+
             # 3. Parse JSON
             try:
                 # Extract JSON from markdown code blocks
@@ -758,6 +903,7 @@ class StatusResponse(BaseModel):
     sessionId: str
     autonomousMode: bool
     lastCheck: Optional[str]
+    usage: Optional[Dict[str, Any]] = None
 
 
 class ThinkResponse(BaseModel):
@@ -786,6 +932,7 @@ async def status():
             if autonomous_engine.last_check
             else None
         ),
+        usage=claude.usage_tracker.get_status(),
     )
 
 
@@ -808,6 +955,8 @@ async def root():
         else "없음"
     )
 
+    usage = claude.usage_tracker.get_status()
+
     return f"""
     <html>
       <head>
@@ -815,6 +964,9 @@ async def root():
         <style>
           body {{ font-family: monospace; max-width: 800px; margin: 50px auto; }}
           .status {{ background: #e8f5e9; padding: 20px; border-radius: 5px; }}
+          .usage {{ background: #fff3e0; padding: 20px; border-radius: 5px; margin-top: 10px; }}
+          .usage-bar {{ background: #e0e0e0; border-radius: 4px; height: 20px; margin: 5px 0; }}
+          .usage-bar-fill {{ background: #ff6b6b; height: 100%; border-radius: 4px; }}
           button {{ padding: 10px 20px; font-size: 16px; margin: 5px; }}
         </style>
       </head>
@@ -825,6 +977,17 @@ async def root():
           <p><strong>Session:</strong> {CONFIG["session_id"]}</p>
           <p><strong>자율 모드:</strong> {'활성화' if CONFIG["autonomous_mode"] else '비활성화'}</p>
           <p><strong>마지막 체크:</strong> {last_check}</p>
+        </div>
+
+        <div class="usage">
+          <h3>📊 사용량</h3>
+          <p><strong>오늘:</strong> {usage["calls_today"]}/{usage["limits"]["per_day"]}</p>
+          <div class="usage-bar">
+            <div class="usage-bar-fill" style="width: {min(usage["calls_today"] * 100 // max(usage["limits"]["per_day"], 1), 100)}%"></div>
+          </div>
+          <p><strong>이번 시간:</strong> {usage["calls_this_hour"]}/{usage["limits"]["per_hour"]}</p>
+          <p><strong>전체 누적:</strong> {usage["total_calls_all_time"]}회</p>
+          <p><strong>상태:</strong> {'⏸️ 일시정지' if usage["paused"] else '✅ 활성'}</p>
         </div>
 
         <h2>수동 트리거</h2>
@@ -855,12 +1018,22 @@ async def autonomous_loop():
     await asyncio.sleep(5)
 
     # First run
-    await autonomous_engine.think()
+    try:
+        await autonomous_engine.think()
+    except UsageLimitExceeded as e:
+        print(f"🛑 Usage limit exceeded (initial run): {e}")
+    except Exception as e:
+        print(f"❌ Error in autonomous loop (initial run): {e}")
 
     # Periodic runs
     while True:
         await asyncio.sleep(CONFIG["check_interval"])
-        await autonomous_engine.think()
+        try:
+            await autonomous_engine.think()
+        except UsageLimitExceeded as e:
+            print(f"🛑 Usage limit exceeded: {e}")
+        except Exception as e:
+            print(f"❌ Error in autonomous loop: {e}")
 
 
 @app.on_event("startup")
