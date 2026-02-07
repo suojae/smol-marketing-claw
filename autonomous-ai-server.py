@@ -515,7 +515,14 @@ async def startup_event():
     if discord_bot:
         token = os.getenv("DISCORD_BOT_TOKEN", "")
         print("🤖 Discord 봇 시작 중...")
-        asyncio.create_task(discord_bot.start(token))
+
+        async def _start_discord():
+            try:
+                await discord_bot.start(token)
+            except Exception as e:
+                print(f"❌ Discord 봇 시작 실패: {e}")
+
+        asyncio.create_task(_start_discord())
     else:
         print("ℹ️ Discord 봇 미설정 (DISCORD_BOT_TOKEN을 .env에 설정하세요)")
 
