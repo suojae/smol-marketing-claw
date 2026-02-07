@@ -1,19 +1,28 @@
-# 🦞 Smol Claw (작은 가재봇)
+# Smol Claw (작은 가재봇)
+
+```
+    (\/)
+   (o.o)
+  />   <\
+ /  ___  \
+|  /   \  |
+ \/     \/
+```
 
 > 나의 작고 귀여운 자율 AI 비서
 
-**AI가 스스로 생각하고 먼저 연락**하는 자율 AI 서버 — OpenClaw처럼, 하지만 더 작고 귀엽게! 🦞
+AI가 스스로 생각하고 먼저 연락하는 자율 AI 서버
 
 [English Documentation](./README.md)
 
-## ✨ 특징
+## 특징
 
-- ✅ **While(true) 서버** - 계속 실행
-- ✅ **자율 판단** - AI가 스스로 생각
-- ✅ **먼저 연락** - 명령 없이도 알림
-- ✅ **컨텍스트 기반** - Git, TODO, 시간 등 분석
+- **While(true) 서버** - 계속 실행
+- **자율 판단** - AI가 스스로 생각
+- **먼저 연락** - 명령 없이도 알림
+- **컨텍스트 기반** - Git, TODO, 시간 등 분석
 
-## 🚀 빠른 시작
+## 빠른 시작
 
 ### 1. 설치
 
@@ -33,7 +42,7 @@ python autonomous-ai-server.py
 - 웹: http://localhost:3000
 - API: `curl http://localhost:3000/status`
 
-## 📖 사용법
+## 사용법
 
 ### 수동 질문
 
@@ -55,18 +64,18 @@ curl http://localhost:3000/think
 curl http://localhost:3000/status
 ```
 
-## 🧠 자율 동작 예시
+## 자율 동작 예시
 
 ### 시나리오 1: Git 변경사항 감지
 
 ```
 [10:30] AI 사고 중...
-📊 컨텍스트: Git 변경사항 5개 발견
-🤖 AI 판단: "커밋하지 않은 파일이 있습니다"
+컨텍스트: Git 변경사항 5개 발견
+AI 판단: "커밋하지 않은 파일이 있습니다"
 
-📢 알림:
+알림:
 ━━━━━━━━━━━━━━━━━━━
-안녕하세요! 🤖
+안녕하세요!
 
 지금 Git에 커밋하지 않은
 변경사항이 5개 있어요.
@@ -78,19 +87,19 @@ curl http://localhost:3000/status
 
 ```
 [14:00] AI 사고 중...
-📊 컨텍스트: 점심 시간 이후
-🤖 AI 판단: "오후 작업 시작 제안"
+컨텍스트: 점심 시간 이후
+AI 판단: "오후 작업 시작 제안"
 
-📢 알림:
+알림:
 ━━━━━━━━━━━━━━━━━━━
-점심 드셨나요? 🍽️
+점심 드셨나요?
 
 할 일 목록에 3개 작업이
 남아있어요. 시작해볼까요?
 ━━━━━━━━━━━━━━━━━━━
 ```
 
-## ⚙️ 설정
+## 설정
 
 `autonomous-ai-server.py` 파일의 `CONFIG` 객체 수정:
 
@@ -102,7 +111,7 @@ CONFIG = {
 }
 ```
 
-## 📊 API 엔드포인트
+## API 엔드포인트
 
 | 메소드 | 경로 | 설명 |
 |--------|------|------|
@@ -111,7 +120,7 @@ CONFIG = {
 | GET | `/think` | 수동 사고 트리거 |
 | POST | `/ask` | 수동 질문 |
 
-## 🔄 맥북 재부팅 시 자동 시작
+## 맥북 재부팅 시 자동 시작
 
 ### launchd 사용 (macOS)
 
@@ -151,7 +160,7 @@ launchctl load ~/Library/LaunchAgents/com.smolclaw.plist
 launchctl list | grep smolclaw
 ```
 
-## 🔌 확장
+## 확장
 
 ### 텔레그램 연동
 
@@ -176,38 +185,23 @@ await slack.chat_postMessage(
 )
 ```
 
-## 🆚 비교: OpenClaw vs Smol Claw
-
-| 기능 | OpenClaw | Smol Claw |
-|------|----------|-----------|
-| While(true) | ✅ | ✅ |
-| AI 자율 판단 | ✅ | ✅ |
-| 먼저 연락 | ✅ | ✅ |
-| 멀티 채널 | ✅ 16개 | ⚠️ 직접 구현 |
-| 복잡도 | 높음 | 낮음 (~400줄) |
-| 커스터마이징 | 어려움 | 쉬움 |
-| 언어 | TypeScript | Python |
-
-## 📚 참고
-
-- [OpenClaw](https://github.com/openclaw/openclaw) - 자율 AI 영감
-- [Claude Code](https://claude.ai/code) - AI 프로그래밍 비서
-
-## ⚠️ 참고사항
+## 참고사항
 
 - Claude Pro 구독 또는 API 키 필요
 - 맥북이 켜져 있어야 작동 (또는 서버 배포로 24/7 가능)
 - Claude Code CLI 설치 필요
 
-## 📄 라이선스
+## 라이선스
 
 MIT
 
-## 🤝 기여
+## 기여
 
 기여를 환영합니다! 자유롭게:
 - 버그 리포트
 - 기능 제안
 - 풀 리퀘스트 제출
 
-💙 인간과 Claude Code가 함께 만들었습니다
+---
+
+인간과 Claude Code가 함께 만들었습니다

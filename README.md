@@ -1,19 +1,28 @@
-# 🦞 Smol Claw
+# Smol Claw
+
+```
+    (\/)
+   (o.o)
+  />   <\
+ /  ___  \
+|  /   \  |
+ \/     \/
+```
 
 > My tiny, cute autonomous AI assistant
 
-An autonomous AI server that **thinks for itself** and **contacts you first** — just like OpenClaw, but smaller and cuter! 🦞
+An autonomous AI server that thinks for itself and contacts you first.
 
 [한국어 문서](./README.ko.md)
 
-## ✨ Features
+## Features
 
-- ✅ **While(true) Server** - Runs continuously
-- ✅ **Autonomous Thinking** - AI judges by itself
-- ✅ **Proactive Contact** - Notifies without commands
-- ✅ **Context-Aware** - Analyzes Git, TODO, time, etc.
+- **While(true) Server** - Runs continuously
+- **Autonomous Thinking** - AI judges by itself
+- **Proactive Contact** - Notifies without commands
+- **Context-Aware** - Analyzes Git, TODO, time, etc.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Install
 
@@ -33,7 +42,7 @@ python autonomous-ai-server.py
 - Web: http://localhost:3000
 - API: `curl http://localhost:3000/status`
 
-## 📖 Usage
+## Usage
 
 ### Manual Question
 
@@ -55,18 +64,18 @@ curl http://localhost:3000/think
 curl http://localhost:3000/status
 ```
 
-## 🧠 Autonomous Examples
+## Autonomous Examples
 
 ### Scenario 1: Git Changes Detected
 
 ```
 [10:30] AI thinking...
-📊 Context: 5 Git changes found
-🤖 AI Decision: "Uncommitted files detected"
+Context: 5 Git changes found
+AI Decision: "Uncommitted files detected"
 
-📢 Notification:
+Notification:
 ━━━━━━━━━━━━━━━━━━━
-Hi! 🤖
+Hi!
 
 You have 5 uncommitted changes
 in Git. Would you like to commit?
@@ -77,19 +86,19 @@ in Git. Would you like to commit?
 
 ```
 [14:00] AI thinking...
-📊 Context: After lunch time
-🤖 AI Decision: "Suggest afternoon work"
+Context: After lunch time
+AI Decision: "Suggest afternoon work"
 
-📢 Notification:
+Notification:
 ━━━━━━━━━━━━━━━━━━━
-Had lunch? 🍽️
+Had lunch?
 
 You have 3 tasks left on
 your TODO. Ready to start?
 ━━━━━━━━━━━━━━━━━━━
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 Edit the `CONFIG` object in `autonomous-ai-server.py`:
 
@@ -101,7 +110,7 @@ CONFIG = {
 }
 ```
 
-## 📊 API Endpoints
+## API Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -110,7 +119,7 @@ CONFIG = {
 | GET | `/think` | Manual think trigger |
 | POST | `/ask` | Manual question |
 
-## 🔄 Auto-Start on macOS Boot
+## Auto-Start on macOS Boot
 
 ### Using launchd (macOS)
 
@@ -150,7 +159,7 @@ launchctl load ~/Library/LaunchAgents/com.smolclaw.plist
 launchctl list | grep smolclaw
 ```
 
-## 🔌 Extensions
+## Extensions
 
 ### Telegram Integration
 
@@ -175,38 +184,23 @@ await slack.chat_postMessage(
 )
 ```
 
-## 🆚 Comparison: OpenClaw vs Smol Claw
-
-| Feature | OpenClaw | Smol Claw |
-|---------|----------|-----------|
-| While(true) | ✅ | ✅ |
-| AI Autonomous Thinking | ✅ | ✅ |
-| Proactive Contact | ✅ | ✅ |
-| Multi-Channel | ✅ 16 channels | ⚠️ DIY |
-| Complexity | High | Low (~400 lines) |
-| Customization | Difficult | Easy |
-| Language | TypeScript | Python |
-
-## 📚 References
-
-- [OpenClaw](https://github.com/openclaw/openclaw) - Inspiration for autonomous AI
-- [Claude Code](https://claude.ai/code) - AI programming assistant
-
-## ⚠️ Requirements
+## Requirements
 
 - Claude Pro subscription or API key
 - MacBook must be running (or deploy to server for 24/7)
 - Claude Code CLI installed
 
-## 📄 License
+## License
 
 MIT
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Feel free to:
 - Report bugs
 - Suggest features
 - Submit pull requests
 
-Made with 💙 by a human and Claude Code
+---
+
+Made by a human and Claude Code
