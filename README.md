@@ -20,6 +20,9 @@
 - **Autonomous Thinking** - AI judges by itself
 - **Proactive Contact** - Notifies without commands
 - **Context-Aware** - Analyzes Git, TODO, time, etc.
+- **Smart Memory** 🧠 - Remembers past decisions and avoids duplicates
+- **Security-First** 🛡️ - Tracks guardrail violations and learns safety patterns
+- **Zero Dependencies** - Simple JSON-based memory (no external DBs needed)
 
 ## Quick Start
 
@@ -157,6 +160,58 @@ launchctl load ~/Library/LaunchAgents/com.smolclaw.plist
 ```bash
 launchctl list | grep smolclaw
 ```
+
+## Memory Management 🧠
+
+Smol Claw automatically manages memory for 24/7 operation:
+
+### How It Works
+
+```
+memory/
+├── decisions.json              # Last 100 decisions
+├── summary.txt                 # Auto-generated summary
+└── guardrail_violations.json   # Security tracking 🛡️
+```
+
+### Features
+
+**1. Short-term Memory (Last 100 decisions)**
+- Stores recent decisions with timestamps
+- Auto-summarizes old decisions when limit exceeded
+- Provides context to AI for better decisions
+
+**2. Duplicate Detection**
+- Prevents same notification within 24 hours
+- Uses word-based similarity matching
+- No annoying repeated alerts!
+
+**3. Guardrail Tracking 🛡️** (Killer Feature!)
+- Records security violations
+- Learns safety patterns
+- Warns about frequently attempted risky actions
+
+### Example Memory Context
+
+```json
+{
+  "id": "a3f7b2c1",
+  "timestamp": "2026-02-07T15:30:00",
+  "action": "notify",
+  "message": "You have 5 uncommitted changes",
+  "reasoning": "Git changes detected, suggesting commit"
+}
+```
+
+### Memory Stats
+
+The AI sees:
+- Summary of past activity
+- Last 10 recent decisions
+- Security violation patterns
+- Frequently blocked targets
+
+**Result**: Smart, context-aware decisions without token bloat! 🦞
 
 ## Extensions
 
