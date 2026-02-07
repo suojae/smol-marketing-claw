@@ -360,29 +360,6 @@ echo 'export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_
 source ~/.zshrc
 ```
 
-### Telegram Integration
-
-```python
-# Add to notify_user() method
-from telegram import Bot
-
-bot = Bot(token='YOUR_TOKEN')
-await bot.send_message(chat_id='YOUR_CHAT_ID', text=message)
-```
-
-### Slack Integration
-
-```python
-# Add to notify_user() method
-from slack_sdk.web.async_client import AsyncWebClient
-
-slack = AsyncWebClient(token='YOUR_TOKEN')
-await slack.chat_postMessage(
-    channel='YOUR_CHANNEL',
-    text=message
-)
-```
-
 ## Requirements
 
 - Claude Pro subscription or API key

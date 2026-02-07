@@ -10,7 +10,7 @@ Features:
 Same autonomy as OpenClaw!
 """
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 import asyncio
 import subprocess
@@ -23,12 +23,14 @@ from typing import Optional, Dict, Any, List
 from collections import Counter
 
 import aiohttp
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import uvicorn
 import discord
 from dotenv import load_dotenv
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 load_dotenv()
 
@@ -41,6 +43,7 @@ CONFIG = {
     "check_interval": 30 * 60,  # 30 minutes in seconds
     "autonomous_mode": True,
     "discord_webhook_url": os.getenv("DISCORD_WEBHOOK_URL", ""),  # Set via environment variable
+    "github_repo": os.getenv("GITHUB_REPO", ""),  # e.g. "suojae/smol-claw"
     "usage_limits": {
         "max_calls_per_minute": 5,
         "max_calls_per_hour": 20,
@@ -50,6 +53,9 @@ CONFIG = {
         "paused": False,
     },
 }
+
+# Global event queue — all event sources push here, autonomous loop consumes
+event_queue: asyncio.Queue = asyncio.Queue()
 
 
 # ============================================
@@ -254,6 +260,52 @@ class UsageTracker:
             "paused": limits.get("paused", False),
             "total_calls_all_time": self._data.get("total_calls", 0),
         }
+
+
+# ============================================
+# File Watcher (OS-level push events) 🦞
+# ============================================
+class GitFileHandler(FileSystemEventHandler):
+    """Watches filesystem and pushes events to the queue (no polling)"""
+
+    def __init__(self, loop, debounce_seconds=3.0):
+        self._loop = loop
+        self._debounce_seconds = debounce_seconds
+        self._last_event_time = None
+
+    def _should_ignore(self, path: str) -> bool:
+        ignore_patterns = [".git/", "__pycache__/", ".pyc", ".swp", ".tmp", "node_modules/"]
+        return any(p in path for p in ignore_patterns)
+
+    def _emit(self, path: str, change_type: str):
+        now = datetime.now()
+        if self._last_event_time and (now - self._last_event_time).total_seconds() < self._debounce_seconds:
+            return
+        self._last_event_time = now
+        filename = Path(path).name
+        event = {"type": "file_changed", "detail": f"{filename} {change_type}"}
+        self._loop.call_soon_threadsafe(event_queue.put_nowait, event)
+
+    def on_modified(self, event):
+        if event.is_directory or self._should_ignore(event.src_path):
+            return
+        self._emit(event.src_path, "modified")
+
+    def on_created(self, event):
+        if event.is_directory or self._should_ignore(event.src_path):
+            return
+        self._emit(event.src_path, "created")
+
+
+def start_file_watcher(loop):
+    """Start OS-level file watcher on the project directory"""
+    watch_path = str(Path.home() / "Documents")
+    handler = GitFileHandler(loop)
+    observer = Observer()
+    observer.schedule(handler, watch_path, recursive=True)
+    observer.daemon = True
+    observer.start()
+    print(f"👁️ File watcher started: {watch_path}")
 
 
 # ============================================
@@ -689,7 +741,7 @@ class AutonomousEngine:
 
 반드시 JSON 형식으로 응답하세요."""
 
-    async def think(self) -> Optional[Dict[str, Any]]:
+    async def think(self, events: Optional[List[Dict[str, str]]] = None) -> Optional[Dict[str, Any]]:
         """AI thinks autonomously and makes decisions"""
         print("\n🧠 자율 AI 사고 중...\n")
 
@@ -709,6 +761,13 @@ class AutonomousEngine:
                 "변경사항 있음" if context["git"]["hasChanges"] else "변경사항 없음"
             )
 
+        # 3.5. Build event summary
+        event_text = ""
+        if events:
+            event_lines = "\n".join([f"- [{e['type']}] {e['detail']}" for e in events])
+            event_text = f"\n🔔 감지된 이벤트:\n{event_lines}\n"
+            print(f"🔔 이벤트 {len(events)}개 감지됨")
+
         # 4. Build prompt (first call includes patterns, subsequent calls are lightweight)
         if is_first:
             memory_context = self.memory.get_context()
@@ -720,7 +779,7 @@ class AutonomousEngine:
 시간: {context['time']}
 Git 상태: {git_status}
 할 일: {len(context['tasks'])}개
-
+{event_text}
 {memory_context}
 
 {safety_context}
@@ -741,7 +800,7 @@ Git 상태: {git_status}
 시간: {context['time']}
 Git 상태: {git_status}
 할 일: {len(context['tasks'])}개
-
+{event_text}
 이전 대화의 기억과 패턴을 참고하여 판단하세요.
 스스로 판단해서 JSON으로 응답하세요."""
 
@@ -953,6 +1012,40 @@ async def think():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/webhook/github")
+async def github_webhook(request: Request):
+    """Receive GitHub webhook events and push to event queue"""
+    body = await request.json()
+    gh_event = request.headers.get("X-GitHub-Event", "unknown")
+
+    event_map = {
+        "pull_request_review": "pr_review",
+        "issues": "new_issue",
+        "push": "push",
+        "check_run": "ci_status",
+    }
+
+    event_type = event_map.get(gh_event, gh_event)
+    detail = f"GitHub {gh_event}"
+
+    if gh_event == "push":
+        pusher = body.get("pusher", {}).get("name", "unknown")
+        detail = f"Push by {pusher}"
+    elif gh_event == "issues":
+        action = body.get("action", "")
+        title = body.get("issue", {}).get("title", "")
+        detail = f"Issue {action}: {title}"
+    elif gh_event == "pull_request_review":
+        action = body.get("action", "")
+        reviewer = body.get("review", {}).get("user", {}).get("login", "")
+        detail = f"PR review {action} by {reviewer}"
+
+    event_queue.put_nowait({"type": event_type, "detail": detail})
+    print(f"🔔 GitHub webhook: {event_type} — {detail}")
+
+    return {"status": "ok", "event_type": event_type}
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Web dashboard"""
@@ -1018,29 +1111,31 @@ async def root():
 # Background autonomous loop
 # ============================================
 async def autonomous_loop():
-    """Background task that runs autonomous thinking periodically"""
-    print("⏰ 자율 루프 시작")
+    """Queue-based event consumer — blocks until events arrive, zero polling"""
+    print("⏰ 이벤트 기반 자율 루프 시작 (queue consumer)")
 
     # Initial delay
     await asyncio.sleep(5)
 
-    # First run
+    # Initial run
     try:
-        await autonomous_engine.think()
-    except UsageLimitExceeded as e:
-        print(f"🛑 Usage limit exceeded (initial run): {e}")
+        await autonomous_engine.think(events=[{"type": "startup", "detail": "Server started"}])
     except Exception as e:
-        print(f"❌ Error in autonomous loop (initial run): {e}")
+        print(f"❌ Error in initial run: {e}")
 
-    # Periodic runs
+    # Event-driven loop — blocks on queue.get(), wakes only on real events
     while True:
-        await asyncio.sleep(CONFIG["check_interval"])
         try:
-            await autonomous_engine.think()
-        except UsageLimitExceeded as e:
-            print(f"🛑 Usage limit exceeded: {e}")
+            first_event = await event_queue.get()
+            events = [first_event]
+            # Drain any additional queued events
+            while not event_queue.empty():
+                events.append(event_queue.get_nowait())
+            event_types = [e["type"] for e in events]
+            print(f"🔔 Events received: {event_types}")
+            await autonomous_engine.think(events=events)
         except Exception as e:
-            print(f"❌ Error in autonomous loop: {e}")
+            print(f"❌ Error in event loop: {e}")
 
 
 @app.on_event("startup")
@@ -1051,7 +1146,13 @@ async def startup_event():
     print(f"🧠 자율 모드: {'활성화' if CONFIG['autonomous_mode'] else '비활성화'}")
 
     if CONFIG["autonomous_mode"]:
-        print(f"⏰ {CONFIG['check_interval'] // 60}분마다 자율 체크")
+        print(f"👁️ File watcher + GitHub webhook (이벤트 push, 타이머 없음)")
+
+        # Start OS-level file watcher (push-based)
+        loop = asyncio.get_event_loop()
+        start_file_watcher(loop)
+
+        # Start queue consumer
         asyncio.create_task(autonomous_loop())
 
     # Start Discord bot if configured
