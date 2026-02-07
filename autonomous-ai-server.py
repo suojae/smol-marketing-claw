@@ -19,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
+import aiohttp
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -32,6 +33,7 @@ CONFIG = {
     "session_id": str(uuid.uuid4()),
     "check_interval": 30 * 60,  # 30 minutes in seconds
     "autonomous_mode": True,
+    "discord_webhook_url": os.getenv("DISCORD_WEBHOOK_URL", ""),  # Set via environment variable
 }
 
 # ============================================
@@ -284,6 +286,10 @@ Git 상태: {git_status}
         print(message)
         print("━" * 50)
 
+        # Discord webhook notification 🦞
+        if CONFIG.get("discord_webhook_url"):
+            await self.send_discord_notification(message)
+
         # macOS notification (optional)
         try:
             subprocess.run([
@@ -292,6 +298,39 @@ Git 상태: {git_status}
             ], check=False)
         except Exception:
             pass
+
+    async def send_discord_notification(self, message: str):
+        """Send notification to Discord via webhook 🦞"""
+        webhook_url = CONFIG.get("discord_webhook_url")
+        if not webhook_url:
+            return
+
+        try:
+            embed = {
+                "title": "🦞 Smol Claw Alert",
+                "description": message,
+                "color": 16730939,  # Coral color (#FF6B6B)
+                "timestamp": datetime.utcnow().isoformat(),
+                "footer": {
+                    "text": "Smol Claw - Your autonomous AI assistant"
+                }
+            }
+
+            payload = {
+                "username": "Smol Claw",
+                "avatar_url": "https://raw.githubusercontent.com/suojae/smol-claw/main/.github/crayfish.svg",
+                "embeds": [embed]
+            }
+
+            async with aiohttp.ClientSession() as session:
+                async with session.post(webhook_url, json=payload) as response:
+                    if response.status == 204:
+                        print("✅ Discord notification sent! 🦞")
+                    else:
+                        print(f"⚠️ Discord webhook returned status {response.status}")
+
+        except Exception as e:
+            print(f"❌ Failed to send Discord notification: {e}")
 
 
 # ============================================

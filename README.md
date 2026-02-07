@@ -160,6 +160,25 @@ launchctl list | grep smolclaw
 
 ## Extensions
 
+### Discord Integration (Built-in) 🦞
+
+Set your Discord webhook URL as an environment variable:
+
+```bash
+# Create a webhook in Discord:
+# Server Settings → Integrations → Webhooks → New Webhook
+
+export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"
+python autonomous-ai-server.py
+```
+
+Or add to your shell profile (~/.zshrc or ~/.bashrc):
+
+```bash
+echo 'export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"' >> ~/.zshrc
+source ~/.zshrc
+```
+
 ### Telegram Integration
 
 ```python
