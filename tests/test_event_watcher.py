@@ -165,13 +165,13 @@ PUSH_PAYLOAD = {"pusher": {"name": "tester"}, "ref": "refs/heads/main"}
 @pytest.mark.asyncio
 class TestWebhookSignatureVerification:
     async def test_valid_signature_returns_200(self):
-        secret = "test-secret"
+        hmac_key = "test-key"
         original = CONFIG["github_webhook_secret"]
-        CONFIG["github_webhook_secret"] = secret
+        CONFIG["github_webhook_secret"] = hmac_key
         try:
             drain_queue()
             body = json.dumps(PUSH_PAYLOAD).encode()
-            sig = _sign(secret, body)
+            sig = _sign(hmac_key, body)
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as ac:
                 resp = await ac.post(
@@ -189,9 +189,9 @@ class TestWebhookSignatureVerification:
             CONFIG["github_webhook_secret"] = original
 
     async def test_invalid_signature_returns_403(self):
-        secret = "test-secret"
+        hmac_key = "test-key"
         original = CONFIG["github_webhook_secret"]
-        CONFIG["github_webhook_secret"] = secret
+        CONFIG["github_webhook_secret"] = hmac_key
         try:
             body = json.dumps(PUSH_PAYLOAD).encode()
             transport = ASGITransport(app=app)
