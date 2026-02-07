@@ -273,6 +273,7 @@ launchctl load ~/Library/LaunchAgents/com.smolclaw.plist
 launchctl list | grep smolclaw
 ```
 
+<<<<<<< HEAD
 ## Memory Management 🧠
 
 Smol Claw automatically manages memory for 24/7 operation:
@@ -324,6 +325,20 @@ The AI sees:
 - Frequently blocked targets
 
 **Result**: Smart, context-aware decisions without token bloat! 🦞
+
+## Discord Setup
+
+1. Create a bot at [Discord Developer Portal](https://discord.com/developers/applications)
+2. Enable **Message Content Intent** under Bot settings
+3. Invite the bot to your server with `Send Messages` permission
+4. Create a `.env` file:
+
+```bash
+DISCORD_BOT_TOKEN=your_bot_token
+DISCORD_CHANNEL_ID=your_channel_id
+```
+
+5. Get the channel ID: Discord Settings > Advanced > Developer Mode > Right-click channel > Copy Channel ID
 
 ## Extensions
 

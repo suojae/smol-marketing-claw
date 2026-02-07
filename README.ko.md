@@ -274,6 +274,7 @@ launchctl load ~/Library/LaunchAgents/com.smolclaw.plist
 launchctl list | grep smolclaw
 ```
 
+<<<<<<< HEAD
 ## 메모리 관리 🧠
 
 Smol Claw는 24/7 운영을 위해 자동으로 메모리를 관리합니다:
@@ -325,6 +326,20 @@ AI는 다음을 확인합니다:
 - 자주 차단된 대상
 
 **결과**: 토큰 낭비 없이 스마트하고 컨텍스트를 인지하는 결정! 🦞
+
+## Discord 설정
+
+1. [Discord Developer Portal](https://discord.com/developers/applications)에서 봇 생성
+2. Bot 설정에서 **Message Content Intent** 활성화
+3. `Send Messages` 권한으로 봇을 서버에 초대
+4. `.env` 파일 생성:
+
+```bash
+DISCORD_BOT_TOKEN=your_bot_token
+DISCORD_CHANNEL_ID=your_channel_id
+```
+
+5. 채널 ID 확인: Discord 설정 > 고급 > 개발자 모드 > 채널 우클릭 > 채널 ID 복사
 
 ## 확장
 
