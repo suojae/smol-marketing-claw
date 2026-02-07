@@ -130,9 +130,19 @@ cd smol-claw
 - [x] Basic documentation
 - [x] Contribution guidelines
 
-### Phase 2: Accessibility (Q2 2026)
+### Phase 2: Safety & Trust (Q2 2026) - PRIORITY
+- [ ] Interactive guardrail setup wizard
+- [ ] GUARDRAILS.md natural language config
+- [ ] Auto-detection of sensitive files/folders
+- [ ] Real-time violation blocking
+- [ ] Audit log and safety reports
+- [ ] Preset security templates
+- [ ] One-click rollback system
+- [ ] Transparent reasoning display
+- [ ] Privacy-first mode by default
+
+### Phase 2.5: Accessibility (Q2 2026)
 - [ ] One-command installer (`curl | bash`)
-- [ ] Interactive setup wizard
 - [ ] Video tutorial series
 - [ ] Comprehensive "Getting Started" guide
 - [ ] Multiple LLM provider support (not just Claude)
@@ -160,51 +170,206 @@ cd smol-claw
 
 ## WOW Factors (What Will Make People Share)
 
-### 1. "The Crayfish Actually Talks to You"
-**Idea**: Personality-driven AI with emoji reactions, jokes, encouragement
+### 1. "Safety-First AI with Easy Guardrails" (THE KILLER FEATURE)
 
-Example:
+**The Problem Everyone Has:**
+- People are scared to give AI agents too much access
+- "What if it deletes my files?"
+- "What if it commits sensitive data?"
+- "What if it accesses private information?"
+- Current solutions: Complex permission systems or blind trust
+
+**Our Solution: Visual Guardrail Builder** 🦞
+
+**Simple Setup (5 clicks):**
+```bash
+smol-claw setup-guardrails
 ```
-[10:30 AM] 🦞 "Hey! You've been coding for 3 hours.
-Time for a break? I'll remind you about that PR review!"
 
-[2:00 PM] 🦞 "I noticed you're stuck on this bug.
-Want me to search Stack Overflow for similar issues?"
+**Interactive wizard:**
+```
+🦞 Welcome to Guardrail Setup!
+
+What kind of work do you do?
+[1] Personal projects
+[2] Work/Company projects
+[3] Open source
+[4] Student/Learning
+[5] Custom
+
+You selected: [2] Work/Company
+
+🦞 I recommend these guardrails:
+
+✓ Never access files in: /Documents/Company/, /Downloads/
+✓ Never commit files containing: password, api_key, secret
+✓ Never send data to external URLs without asking
+✓ Always ask before: git push, file deletion, system commands
+✓ Block access to: .env files, /etc/, ~/.ssh/
+
+Add more? [y/n]
 ```
 
-### 2. "It Learns YOUR Workflow"
-**Idea**: Personalized patterns over time
+**Features:**
 
-- Learns your commit patterns
-- Remembers your preferences
-- Adapts notification timing to your schedule
-- Suggests based on past decisions
+1. **Smart Auto-Detection**
+   - Scans your system and suggests guardrails
+   - "I noticed .env files - should I block those?"
+   - "You have AWS credentials - protect them?"
 
-### 3. "Open Source Hall of Fame"
-**Idea**: Public recognition system
+2. **Natural Language Guardrails**
+   ```
+   GUARDRAILS.md:
 
-- Contributor leaderboard
-- "Top Crayfish of the Month" 🦞
-- Custom Discord roles
-- GitHub profile badges
+   # My Safety Rules
 
-### 4. "AI Pair Programming Partner"
-**Idea**: Beyond notifications, actual coding help
+   - Never touch anything in my Documents/Work folder
+   - Don't commit without showing me first
+   - Never access my browser history
+   - Ask before installing any packages
+   - Don't read files with "private" in the name
+   ```
 
-- Suggests code improvements in real-time
-- Explains complex code you're reading
-- Generates tests automatically
-- Refactoring recommendations
+3. **Real-time Violation Alerts**
+   ```
+   🦞 STOPPED: About to read /Documents/Work/secrets.txt
 
-### 5. "The Cutest Error Messages"
-**Idea**: Even errors are friendly
+   This violates your guardrail: "Never touch Work folder"
+
+   [Override Once] [Edit Guardrail] [Cancel]
+   ```
+
+4. **Audit Log**
+   ```
+   🦞 Safety Report (Last 24h)
+
+   ✓ 15 actions completed safely
+   ⚠️ 3 actions blocked by guardrails
+   📊 0 violations
+
+   Most common blocks:
+   - Attempted to read .env file (2x)
+   - Tried to access Work folder (1x)
+   ```
+
+5. **Preset Templates**
+   - **Paranoid Mode**: Maximum restrictions
+   - **Balanced**: Recommended for most users
+   - **Trusting**: Minimal restrictions
+   - **Company**: Corporate security standards
+   - **Student**: Safe learning environment
+
+**Why This is THE Wow Factor:**
+
+- **Solves real fear**: "I want AI help but I'm scared"
+- **First mover advantage**: No other simple bot has this
+- **Viral potential**: "Finally, safe AI automation!"
+- **Press worthy**: Tech blogs will cover this
+- **Word of mouth**: "You have to see this guardrail system"
+
+**Marketing Angle:**
+> "The only autonomous AI that asks permission instead of forgiveness"
+
+### 2. "Transparent AI Reasoning"
+
+**Feature**: Show exactly WHY AI decided to act
 
 ```
-🦞 "Oops! I got my claws tangled in the config file.
-Let me help you fix that..."
+🦞 Decision Log
 
-🦞 "Hmm, this doesn't look right. Did you mean to
-set the webhook URL? Here's how..."
+Context analyzed:
+- Git status: 5 uncommitted files
+- Last commit: 3 hours ago
+- Working hours: Yes (2:30 PM)
+- Your pattern: Usually commit every 2 hours
+
+My reasoning:
+1. You typically commit more frequently
+2. It's afternoon (your productive time)
+3. Files have been changed significantly
+
+Confidence: 85%
+
+Suggesting: "Would you like to commit?"
+```
+
+**Why it matters:**
+- Builds trust through transparency
+- Educational for users learning AI
+- Debuggable when something goes wrong
+- Unique in autonomous AI space
+
+### 3. "One-Click Rollback"
+
+**Feature**: Undo any AI action instantly
+
+```
+🦞 Oops, didn't mean to do that?
+
+[Last 10 actions]
+✓ Sent Discord notification (2 min ago)
+✓ Created git commit (5 min ago) ← [Rollback]
+✓ Analyzed code (10 min ago)
+
+Rollback will:
+- Undo the git commit
+- Restore previous state
+- Keep a backup just in case
+```
+
+**Why it's powerful:**
+- Safety net for experimentation
+- Reduces fear of AI mistakes
+- Learning without consequences
+- Unique differentiator
+
+### 4. "Privacy-First Architecture"
+
+**Feature**: Everything local, nothing leaves your machine (unless you want)
+
+```
+🦞 Privacy Settings
+
+Current mode: Paranoid (Recommended)
+
+✓ All processing happens locally
+✓ No data sent to external servers
+✓ Logs stored encrypted
+✓ Auto-delete logs after 7 days
+
+Optional cloud features (OFF):
+☐ Sync settings across devices
+☐ Cloud backup of configurations
+☐ Anonymous usage analytics
+```
+
+**Marketing:**
+- "Your AI that respects your privacy"
+- Open source = auditable
+- No telemetry by default
+- Data never leaves localhost
+
+### 5. "Smart Context Limiting"
+
+**Feature**: AI only sees what you allow
+
+```
+🦞 Context Access Control
+
+What can I see?
+✓ Git status (read-only)
+✓ TODO.txt (read-only)
+✓ Current time
+✓ README.md files
+
+What am I blocked from?
+✗ Browser history
+✗ Personal files
+✗ Email
+✗ Password managers
+✗ Financial data
+
+[Customize Access]
 ```
 
 ## Marketing & Growth Strategy
@@ -272,12 +437,14 @@ set the webhook URL? Here's how..."
 ## Key Takeaways
 
 **Our competitive advantages:**
-1. Simplest codebase (400 lines vs 4000 vs 430k)
-2. Most beginner-friendly documentation
-3. Cutest mascot (seriously, this matters) 🦞
-4. Fastest time-to-value (5 minutes)
-5. Best developer-focused features
-6. Warmest community culture
+1. **Safest autonomous AI** - Visual guardrails, real-time blocking, audit logs
+2. **Most transparent** - Shows reasoning, allows rollback, privacy-first
+3. Simplest codebase (400 lines vs 4000 vs 430k)
+4. Most beginner-friendly documentation
+5. Cutest mascot (seriously, this matters) 🦞
+6. Fastest time-to-value (5 minutes)
+7. Best developer-focused features
+8. Warmest community culture
 
 **Our mission:**
 Make autonomous AI accessible, understandable, and delightful for everyone.
