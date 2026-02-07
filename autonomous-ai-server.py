@@ -950,12 +950,22 @@ async def autonomous_loop():
     await asyncio.sleep(5)
 
     # First run
-    await autonomous_engine.think()
+    try:
+        await autonomous_engine.think()
+    except UsageLimitExceeded as e:
+        print(f"🛑 Usage limit exceeded (initial run): {e}")
+    except Exception as e:
+        print(f"❌ Error in autonomous loop (initial run): {e}")
 
     # Periodic runs
     while True:
         await asyncio.sleep(CONFIG["check_interval"])
-        await autonomous_engine.think()
+        try:
+            await autonomous_engine.think()
+        except UsageLimitExceeded as e:
+            print(f"🛑 Usage limit exceeded: {e}")
+        except Exception as e:
+            print(f"❌ Error in autonomous loop: {e}")
 
 
 @app.on_event("startup")
