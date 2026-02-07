@@ -23,6 +23,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import uvicorn
+import discord
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ============================================
 # Configuration
@@ -170,14 +174,86 @@ class ClaudeExecutor:
 
 
 # ============================================
+# Discord Bot
+# ============================================
+class DiscordBot(discord.Client):
+    """Discord bot for bidirectional communication with users"""
+
+    def __init__(self, claude: ClaudeExecutor):
+        intents = discord.Intents.default()
+        intents.message_content = True
+        super().__init__(intents=intents)
+        self.claude = claude
+        self.notification_channel: Optional[discord.TextChannel] = None
+        self.channel_id = int(os.getenv("DISCORD_CHANNEL_ID", "0"))
+
+    async def on_ready(self):
+        print(f"🤖 Discord 봇 로그인: {self.user}")
+        if self.channel_id:
+            self.notification_channel = self.get_channel(self.channel_id)
+            if self.notification_channel:
+                print(f"📢 알림 채널: #{self.notification_channel.name}")
+            else:
+                print(f"⚠️ 채널 ID {self.channel_id}를 찾을 수 없습니다")
+
+    async def on_message(self, message: discord.Message):
+        # Ignore messages from the bot itself
+        if message.author == self.user:
+            return
+
+        # Only respond in the configured channel
+        if self.channel_id and message.channel.id != self.channel_id:
+            return
+
+        user_message = message.content
+        print(f"💬 Discord 메시지 수신: {user_message}")
+
+        try:
+            async with message.channel.typing():
+                response = await self.claude.execute(user_message)
+
+            # Split long messages (Discord 2000 char limit)
+            for chunk in self._split_message(response):
+                await message.channel.send(chunk)
+        except Exception as e:
+            await message.channel.send(f"오류가 발생했습니다: {e}")
+
+    async def send_notification(self, message: str):
+        """Send a notification message to the configured channel"""
+        if not self.notification_channel:
+            print("⚠️ Discord 알림 채널이 설정되지 않았습니다")
+            return
+
+        try:
+            for chunk in self._split_message(message):
+                await self.notification_channel.send(chunk)
+            print("📨 Discord 알림 전송 완료")
+        except Exception as e:
+            print(f"❌ Discord 알림 전송 실패: {e}")
+
+    @staticmethod
+    def _split_message(text: str, limit: int = 2000) -> List[str]:
+        """Split a message into chunks that fit Discord's character limit"""
+        if len(text) <= limit:
+            return [text]
+        chunks = []
+        while text:
+            chunks.append(text[:limit])
+            text = text[limit:]
+        return chunks
+
+
+# ============================================
 # Autonomous Engine (핵심!)
 # ============================================
 class AutonomousEngine:
     """Autonomous AI Engine - makes decisions and acts proactively"""
 
-    def __init__(self, claude: ClaudeExecutor, context_collector: ContextCollector):
+    def __init__(self, claude: ClaudeExecutor, context_collector: ContextCollector,
+                 discord_bot: Optional["DiscordBot"] = None):
         self.claude = claude
         self.context_collector = context_collector
+        self.discord_bot = discord_bot
         self.last_check = None
 
     def get_system_prompt(self) -> str:
@@ -293,6 +369,10 @@ Git 상태: {git_status}
         except Exception:
             pass
 
+        # Discord notification
+        if self.discord_bot:
+            await self.discord_bot.send_notification(message)
+
 
 # ============================================
 # FastAPI Server
@@ -302,7 +382,14 @@ app = FastAPI(title="Autonomous AI Server")
 # Global instances
 claude = ClaudeExecutor(CONFIG["session_id"])
 context_collector = ContextCollector()
-autonomous_engine = AutonomousEngine(claude, context_collector)
+discord_bot: Optional[DiscordBot] = None
+
+# Initialize Discord bot if token is configured
+_discord_token = os.getenv("DISCORD_BOT_TOKEN", "")
+if _discord_token and _discord_token != "your_token_here":
+    discord_bot = DiscordBot(claude)
+
+autonomous_engine = AutonomousEngine(claude, context_collector, discord_bot)
 
 # Request/Response models
 class AskRequest(BaseModel):
@@ -423,6 +510,14 @@ async def startup_event():
     if CONFIG["autonomous_mode"]:
         print(f"⏰ {CONFIG['check_interval'] // 60}분마다 자율 체크")
         asyncio.create_task(autonomous_loop())
+
+    # Start Discord bot if configured
+    if discord_bot:
+        token = os.getenv("DISCORD_BOT_TOKEN", "")
+        print("🤖 Discord 봇 시작 중...")
+        asyncio.create_task(discord_bot.start(token))
+    else:
+        print("ℹ️ Discord 봇 미설정 (DISCORD_BOT_TOKEN을 .env에 설정하세요)")
 
     print("✅ 준비 완료!")
     print("AI가 스스로 판단하고 먼저 연락합니다.\n")
