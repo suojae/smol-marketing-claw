@@ -57,7 +57,7 @@ CONFIG = {
     },
 }
 
-# Global event queue — all event sources push here, autonomous loop consumes
+# Global event queue — re-created in startup_event() to match uvicorn's loop
 event_queue: asyncio.Queue = asyncio.Queue()
 
 
@@ -348,20 +348,34 @@ class ClaudeExecutor:
 
         args.append(message)
 
-        try:
-            # Run with timeout
-            result = await asyncio.wait_for(
-                asyncio.create_subprocess_exec(
-                    *args,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                ),
-                timeout=60.0,
+        async def _run(cmd_args):
+            proc = await asyncio.create_subprocess_exec(
+                *cmd_args,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
+            stdout, stderr = await proc.communicate()
+            return proc, stdout, stderr
 
-            stdout, stderr = await result.communicate()
+        try:
+            proc, stdout, stderr = await asyncio.wait_for(_run(args), timeout=120.0)
 
-            if result.returncode == 0:
+            # Retry once with new session if "already in use"
+            if proc.returncode != 0:
+                err_msg = stderr.decode()
+                if "already in use" in err_msg:
+                    print(f"⚠️ Session busy, retrying with new session...")
+                    await asyncio.sleep(2)
+                    new_sid = str(uuid.uuid4())
+                    retry_args = [
+                        a if a != args[args.index("--session-id") + 1] else new_sid
+                        for a in args
+                    ]
+                    proc, stdout, stderr = await asyncio.wait_for(
+                        _run(retry_args), timeout=120.0
+                    )
+
+            if proc.returncode == 0:
                 print(f"[{datetime.now().isoformat()}] 📥 Completed")
                 self.usage_tracker.record_call()
                 warning = self.usage_tracker.get_warning()
@@ -369,10 +383,10 @@ class ClaudeExecutor:
                     print(warning)
                 return stdout.decode("utf-8").strip()
             else:
-                raise Exception(f"Exit code {result.returncode}: {stderr.decode()}")
+                raise Exception(f"Exit code {proc.returncode}: {stderr.decode()}")
 
         except asyncio.TimeoutError:
-            raise Exception("Timeout")
+            raise Exception("Timeout (120s)")
 
 
 # ============================================
@@ -655,7 +669,11 @@ class DiscordBot(discord.Client):
 
             async with self._channel_locks[channel_id]:
                 async with message.channel.typing():
-                    response = await self.claude.execute(user_message, session_id=session_id)
+                    try:
+                        response = await self.claude.execute(user_message, session_id=session_id)
+                    except UsageLimitExceeded:
+                        await asyncio.sleep(CONFIG["usage_limits"]["min_call_interval_seconds"])
+                        response = await self.claude.execute(user_message, session_id=session_id)
 
                 # Split long messages (Discord 2000 char limit)
                 for chunk in self._split_message(response):
@@ -1164,6 +1182,10 @@ async def startup_event():
     print("🚀 자율 AI 서버 시작")
     print(f"📍 Session: {CONFIG['session_id']}")
     print(f"🧠 자율 모드: {'활성화' if CONFIG['autonomous_mode'] else '비활성화'}")
+
+    # Re-create event_queue on the running event loop
+    global event_queue
+    event_queue = asyncio.Queue()
 
     if CONFIG["autonomous_mode"]:
         print(f"👁️ File watcher + GitHub webhook (이벤트 push, 타이머 없음)")
