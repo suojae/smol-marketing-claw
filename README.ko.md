@@ -161,6 +161,25 @@ launchctl list | grep smolclaw
 
 ## 확장
 
+### Discord 연동 (내장) 🦞
+
+환경 변수로 Discord webhook URL을 설정하세요:
+
+```bash
+# Discord에서 webhook 생성:
+# 서버 설정 → 연동 → 웹후크 → 새 웹후크
+
+export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"
+python autonomous-ai-server.py
+```
+
+또는 셸 프로필에 추가 (~/.zshrc 또는 ~/.bashrc):
+
+```bash
+echo 'export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"' >> ~/.zshrc
+source ~/.zshrc
+```
+
 ### 텔레그램 연동
 
 ```python
