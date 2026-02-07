@@ -20,6 +20,8 @@
 - **Autonomous Thinking** - AI judges by itself
 - **Proactive Contact** - Notifies without commands
 - **Context-Aware** - Analyzes Git, TODO, time, etc.
+- **Secrets Protection** 🛡️ - Prevents committing API keys, passwords, .env files
+- **Safe by Default** - Pre-commit hooks and CI checks for sensitive data
 
 ## Quick Start
 
@@ -108,6 +110,116 @@ CONFIG = {
     "autonomous_mode": True          # Autonomous mode on/off
 }
 ```
+
+## Secrets Protection 🛡️
+
+Smol Claw protects you from accidentally committing sensitive information!
+
+### What's Protected
+
+Automatically detects and blocks:
+- 🔑 API keys (OpenAI, Anthropic, AWS, etc.)
+- 🔐 Passwords and auth tokens
+- 🔒 Private keys and certificates
+- 💳 Database connection strings
+- 🪝 Webhook URLs with secrets
+- 📄 .env files and credentials
+
+### How It Works
+
+**1. Pre-commit Hook** (Local Protection)
+```bash
+# Install hooks (done automatically by quickstart.sh)
+bash scripts/install-hooks.sh
+
+# Now git will check before every commit!
+git commit -m "add feature"
+# 🦞 Checking for sensitive information...
+# ✅ No sensitive information detected! Safe to commit. 🦞
+```
+
+**2. CI/CD Check** (Remote Protection)
+```yaml
+# Runs automatically on every push/PR
+- name: Check for secrets 🛡️
+  run: python3 scripts/check-secrets.py --all
+```
+
+**3. Manual Check**
+```bash
+# Check staged files
+python scripts/check-secrets.py
+
+# Check all tracked files
+python scripts/check-secrets.py --all
+
+# Check specific file
+python scripts/check-secrets.py config.py
+```
+
+### Example: Blocked Commit
+
+```bash
+$ git commit -m "add config"
+🦞 Checking for sensitive information...
+
+======================================================================
+🛡️  SECURITY ALERT: Sensitive Information Detected! 🛡️
+======================================================================
+
+❌ API Key detected!
+   File: config.py:5
+   Line: api_key=[REDACTED]
+
+❌ Forbidden file!
+   File: .env
+
+======================================================================
+🦞 Smol Claw prevented you from committing sensitive data!
+
+What to do:
+  1. Remove sensitive information from the files
+  2. Use environment variables instead: os.getenv('API_KEY')
+  3. Add sensitive files to .gitignore
+  4. Update GUARDRAILS.md with protection rules
+======================================================================
+
+# Commit blocked! ✅
+```
+
+### Best Practices
+
+**✅ Good: Use Environment Variables**
+```python
+import os
+
+# Store in .env (add to .gitignore!)
+api_key = os.getenv("OPENAI_API_KEY")
+webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+```
+
+```bash
+# .env
+OPENAI_API_KEY=sk-your-key-here
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+```
+
+**❌ Bad: Hardcode Secrets**
+```python
+# NEVER DO THIS! ❌
+api_key = "sk-1234567890abcdef"
+password = "mypassword123"
+```
+
+### Guardrails
+
+See `GUARDRAILS.md` for:
+- Complete protection rules
+- Custom guardrail configuration
+- Testing and bypass options
+- Security best practices
+
+🦞 **Your secrets are safe with Smol Claw!** 🛡️
 
 ## API Endpoints
 

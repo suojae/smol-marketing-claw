@@ -46,7 +46,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Run security scan
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Check for secrets and sensitive information 🛡️
+      run: |
+        echo "🦞 Checking for secrets in all tracked files..."
+        python3 scripts/check-secrets.py --all
+
+    - name: Run dependency security scan
       continue-on-error: true
       run: |
         pip install safety

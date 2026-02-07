@@ -20,6 +20,8 @@
 - **자율 판단** - AI가 스스로 생각
 - **먼저 연락** - 명령 없이도 알림
 - **컨텍스트 기반** - Git, TODO, 시간 등 분석
+- **비밀 정보 보호** 🛡️ - API 키, 비밀번호, .env 파일 커밋 방지
+- **기본적으로 안전** - pre-commit hook과 CI 체크로 민감 데이터 보호
 
 ## 빠른 시작
 
@@ -109,6 +111,116 @@ CONFIG = {
     "autonomous_mode": True          # 자율 모드 on/off
 }
 ```
+
+## 비밀 정보 보호 🛡️
+
+Smol Claw는 실수로 민감한 정보를 커밋하는 것을 방지합니다!
+
+### 보호 대상
+
+자동으로 감지하고 차단:
+- 🔑 API 키 (OpenAI, Anthropic, AWS 등)
+- 🔐 비밀번호와 인증 토큰
+- 🔒 개인 키와 인증서
+- 💳 데이터베이스 연결 문자열
+- 🪝 비밀이 포함된 웹훅 URL
+- 📄 .env 파일과 자격증명
+
+### 작동 방식
+
+**1. Pre-commit Hook** (로컬 보호)
+```bash
+# 훅 설치 (quickstart.sh가 자동으로 수행)
+bash scripts/install-hooks.sh
+
+# 이제 git이 매 커밋마다 체크합니다!
+git commit -m "기능 추가"
+# 🦞 민감한 정보 확인 중...
+# ✅ 민감한 정보가 감지되지 않았습니다! 안전하게 커밋 가능. 🦞
+```
+
+**2. CI/CD 체크** (원격 보호)
+```yaml
+# 모든 push/PR에서 자동 실행
+- name: 비밀 정보 체크 🛡️
+  run: python3 scripts/check-secrets.py --all
+```
+
+**3. 수동 체크**
+```bash
+# staged 파일 체크
+python scripts/check-secrets.py
+
+# 모든 추적 파일 체크
+python scripts/check-secrets.py --all
+
+# 특정 파일 체크
+python scripts/check-secrets.py config.py
+```
+
+### 예시: 차단된 커밋
+
+```bash
+$ git commit -m "설정 추가"
+🦞 민감한 정보 확인 중...
+
+======================================================================
+🛡️  보안 경고: 민감한 정보가 감지되었습니다! 🛡️
+======================================================================
+
+❌ API Key 감지!
+   파일: config.py:5
+   라인: api_key=[삭제됨]
+
+❌ 금지된 파일!
+   파일: .env
+
+======================================================================
+🦞 Smol Claw가 민감한 데이터 커밋을 방지했습니다!
+
+해결 방법:
+  1. 파일에서 민감한 정보 제거
+  2. 환경 변수 사용: os.getenv('API_KEY')
+  3. .gitignore에 민감한 파일 추가
+  4. GUARDRAILS.md에 보호 규칙 업데이트
+======================================================================
+
+# 커밋이 차단되었습니다! ✅
+```
+
+### 모범 사례
+
+**✅ 좋음: 환경 변수 사용**
+```python
+import os
+
+# .env에 저장 (.gitignore에 추가!)
+api_key = os.getenv("OPENAI_API_KEY")
+webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+```
+
+```bash
+# .env
+OPENAI_API_KEY=sk-your-key-here
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+```
+
+**❌ 나쁨: 비밀 하드코딩**
+```python
+# 절대 이렇게 하지 마세요! ❌
+api_key = "sk-1234567890abcdef"
+password = "mypassword123"
+```
+
+### 가드레일
+
+`GUARDRAILS.md`에서 확인하세요:
+- 완전한 보호 규칙
+- 사용자 정의 가드레일 설정
+- 테스트 및 우회 옵션
+- 보안 모범 사례
+
+🦞 **Smol Claw와 함께 비밀을 안전하게!** 🛡️
 
 ## API 엔드포인트
 

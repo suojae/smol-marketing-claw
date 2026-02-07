@@ -67,6 +67,19 @@ else
 fi
 
 echo ""
+echo "🛡️  Security Setup"
+echo ""
+echo "Do you want to install git hooks to prevent committing secrets? (y/n)"
+read -r install_hooks
+
+if [[ "$install_hooks" =~ ^[Yy]$ ]]; then
+    bash scripts/install-hooks.sh
+    echo "✅ Git hooks installed"
+else
+    echo "⏭️  Skipping git hooks (you can install later with: bash scripts/install-hooks.sh)"
+fi
+
+echo ""
 echo "🎉 Setup complete!"
 echo ""
 echo "To start Smol Claw:"
@@ -74,5 +87,7 @@ echo "  1. Activate virtual environment: source venv/bin/activate"
 echo "  2. Run the server: python autonomous-ai-server.py"
 echo ""
 echo "Visit http://localhost:3000 when ready"
+echo ""
+echo "🛡️  Your secrets are protected! Check GUARDRAILS.md for details."
 echo ""
 echo "🦞 Happy coding!"
