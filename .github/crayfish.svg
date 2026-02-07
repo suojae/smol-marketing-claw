@@ -1,65 +1,184 @@
-<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-  <!-- Cute Crayfish Illustration -->
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients for 3D effect -->
+    <radialGradient id="bodyGradient" cx="40%" cy="30%">
+      <stop offset="0%" style="stop-color:#FF8E8E;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E85555;stop-opacity:1" />
+    </radialGradient>
 
-  <!-- Body -->
-  <ellipse cx="200" cy="150" rx="80" ry="60" fill="#FF6B6B" stroke="#E85555" stroke-width="3"/>
+    <radialGradient id="clawGradient" cx="35%" cy="25%">
+      <stop offset="0%" style="stop-color:#FFA5A5;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#FF7878;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E85555;stop-opacity:1" />
+    </radialGradient>
 
-  <!-- Tail -->
-  <path d="M 280 150 Q 320 140 340 145 Q 350 150 340 160 Q 320 165 280 155 Z" fill="#FF6B6B" stroke="#E85555" stroke-width="2"/>
-  <path d="M 340 145 Q 360 140 370 145 Q 375 150 370 155 Q 360 160 340 160 Z" fill="#FF8787" stroke="#E85555" stroke-width="2"/>
+    <radialGradient id="headGradient" cx="30%" cy="25%">
+      <stop offset="0%" style="stop-color:#FFB0B0;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF8787;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:1" />
+    </radialGradient>
 
-  <!-- Legs (3 on each side) -->
-  <g id="legs">
-    <!-- Left legs -->
-    <line x1="180" y1="180" x2="160" y2="220" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
-    <line x1="190" y1="190" x2="175" y2="230" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
-    <line x1="200" y1="195" x2="190" y2="235" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
+    <radialGradient id="eyeGradient" cx="30%" cy="30%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#F0F0F0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0E0E0;stop-opacity:1" />
+    </radialGradient>
 
-    <!-- Right legs -->
-    <line x1="220" y1="180" x2="240" y2="220" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
-    <line x1="210" y1="190" x2="225" y2="230" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
-    <line x1="200" y1="195" x2="210" y2="235" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Main body with 3D gradient -->
+  <ellipse cx="200" cy="220" rx="90" ry="70" fill="url(#bodyGradient)" filter="url(#shadow)"/>
+
+  <!-- Highlight on body for shine -->
+  <ellipse cx="180" cy="200" rx="35" ry="25" fill="white" opacity="0.3"/>
+
+  <!-- Tail segments with 3D effect -->
+  <g filter="url(#shadow)">
+    <ellipse cx="290" cy="220" rx="25" ry="35" fill="url(#bodyGradient)"/>
+    <ellipse cx="285" cy="210" rx="10" ry="12" fill="white" opacity="0.25"/>
+
+    <ellipse cx="320" cy="215" rx="20" ry="30" fill="url(#bodyGradient)"/>
+    <ellipse cx="316" cy="205" rx="8" ry="10" fill="white" opacity="0.25"/>
+
+    <ellipse cx="345" cy="210" rx="15" ry="25" fill="url(#bodyGradient)"/>
+    <ellipse cx="342" cy="200" rx="6" ry="8" fill="white" opacity="0.25"/>
   </g>
 
-  <!-- Claws -->
-  <!-- Left claw -->
-  <ellipse cx="130" cy="120" rx="15" ry="40" fill="#FF6B6B" stroke="#E85555" stroke-width="2" transform="rotate(-30 130 120)"/>
-  <path d="M 110 100 L 95 85 L 100 95 L 95 105 Z" fill="#FF6B6B" stroke="#E85555" stroke-width="2"/>
-  <line x1="150" y1="140" x2="130" y2="120" stroke="#E85555" stroke-width="5" stroke-linecap="round"/>
+  <!-- Head with 3D gradient -->
+  <ellipse cx="140" cy="190" rx="45" ry="50" fill="url(#headGradient)" filter="url(#shadow)"/>
+  <ellipse cx="125" cy="175" rx="18" ry="20" fill="white" opacity="0.3"/>
 
-  <!-- Right claw -->
-  <ellipse cx="270" cy="120" rx="15" ry="40" fill="#FF6B6B" stroke="#E85555" stroke-width="2" transform="rotate(30 270 120)"/>
-  <path d="M 290 100 L 305 85 L 300 95 L 305 105 Z" fill="#FF6B6B" stroke="#E85555" stroke-width="2"/>
-  <line x1="250" y1="140" x2="270" y2="120" stroke="#E85555" stroke-width="5" stroke-linecap="round"/>
+  <!-- Big cute eyes with 3D effect -->
+  <g filter="url(#shadow)">
+    <!-- Left eye -->
+    <ellipse cx="125" cy="175" rx="18" ry="22" fill="url(#eyeGradient)"/>
+    <ellipse cx="125" cy="175" rx="10" ry="12" fill="#2C3E50"/>
+    <circle cx="128" cy="172" r="4" fill="white"/>
+    <circle cx="123" cy="178" r="2" fill="white" opacity="0.6"/>
 
-  <!-- Head -->
-  <ellipse cx="140" cy="130" rx="35" ry="40" fill="#FF6B6B" stroke="#E85555" stroke-width="3"/>
+    <!-- Right eye -->
+    <ellipse cx="158" cy="175" rx="18" ry="22" fill="url(#eyeGradient)"/>
+    <ellipse cx="158" cy="175" rx="10" ry="12" fill="#2C3E50"/>
+    <circle cx="161" cy="172" r="4" fill="white"/>
+    <circle cx="156" cy="178" r="2" fill="white" opacity="0.6"/>
+  </g>
 
-  <!-- Eyes -->
-  <circle cx="130" cy="120" r="8" fill="white" stroke="#333" stroke-width="2"/>
-  <circle cx="132" cy="120" r="4" fill="#333"/>
+  <!-- Cute blushing cheeks -->
+  <ellipse cx="110" cy="195" rx="12" ry="8" fill="#FF9999" opacity="0.6"/>
+  <ellipse cx="173" cy="195" rx="12" ry="8" fill="#FF9999" opacity="0.6"/>
 
-  <circle cx="155" cy="120" r="8" fill="white" stroke="#333" stroke-width="2"/>
-  <circle cx="157" cy="120" r="4" fill="#333"/>
+  <!-- Happy smile -->
+  <path d="M 125 200 Q 142 210 158 200" stroke="#2C3E50" stroke-width="3" fill="none" stroke-linecap="round"/>
 
-  <!-- Cute smile -->
-  <path d="M 130 135 Q 142 142 155 135" stroke="#333" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Antennae with 3D effect -->
+  <g filter="url(#shadow)">
+    <path d="M 130 150 Q 120 120 115 100" stroke="url(#bodyGradient)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <circle cx="115" cy="100" r="6" fill="url(#clawGradient)"/>
+    <circle cx="113" cy="98" r="2" fill="white" opacity="0.5"/>
 
-  <!-- Antennae -->
-  <line x1="135" y1="95" x2="125" y2="70" stroke="#E85555" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="125" cy="70" r="4" fill="#FF6B6B"/>
+    <path d="M 153 150 Q 163 120 168 100" stroke="url(#bodyGradient)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <circle cx="168" cy="100" r="6" fill="url(#clawGradient)"/>
+    <circle cx="166" cy="98" r="2" fill="white" opacity="0.5"/>
+  </g>
 
-  <line x1="150" y1="95" x2="160" y2="70" stroke="#E85555" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="160" cy="70" r="4" fill="#FF6B6B"/>
+  <!-- Left claw with 3D gradient -->
+  <g filter="url(#shadow)">
+    <!-- Arm -->
+    <ellipse cx="120" cy="210" rx="12" ry="35" fill="url(#clawGradient)" transform="rotate(-45 120 210)"/>
+    <ellipse cx="115" cy="200" rx="5" ry="15" fill="white" opacity="0.25" transform="rotate(-45 115 200)"/>
 
-  <!-- Spots on body for cuteness -->
-  <circle cx="190" cy="140" r="5" fill="#FF8787" opacity="0.6"/>
-  <circle cx="210" cy="145" r="6" fill="#FF8787" opacity="0.6"/>
-  <circle cx="220" cy="155" r="4" fill="#FF8787" opacity="0.6"/>
+    <!-- Claw -->
+    <ellipse cx="85" cy="195" rx="18" ry="45" fill="url(#clawGradient)" transform="rotate(-35 85 195)"/>
+    <ellipse cx="80" cy="180" rx="8" ry="20" fill="white" opacity="0.3" transform="rotate(-35 80 180)"/>
 
-  <!-- Sparkles for extra cuteness -->
-  <g opacity="0.7">
-    <path d="M 300 100 L 302 105 L 307 103 L 303 108 L 308 110 L 303 112 L 305 117 L 300 113 L 295 117 L 297 112 L 292 110 L 297 108 L 293 103 L 298 105 Z" fill="#FFD700"/>
-    <path d="M 100 180 L 101 183 L 104 182 L 102 185 L 105 186 L 102 187 L 103 190 L 100 188 L 97 190 L 98 187 L 95 186 L 98 185 L 96 182 L 99 183 Z" fill="#FFD700"/>
+    <!-- Pincer top -->
+    <path d="M 70 165 Q 60 150 58 145 Q 56 140 62 142 Q 68 145 72 155 Z"
+          fill="url(#clawGradient)" stroke="#E85555" stroke-width="1.5"/>
+    <path d="M 65 155 Q 61 148 60 145" stroke="white" stroke-width="1.5" fill="none" opacity="0.4"/>
+
+    <!-- Pincer bottom -->
+    <path d="M 70 185 Q 60 195 57 200 Q 55 205 61 202 Q 67 198 72 188 Z"
+          fill="url(#clawGradient)" stroke="#E85555" stroke-width="1.5"/>
+  </g>
+
+  <!-- Right claw with 3D gradient -->
+  <g filter="url(#shadow)">
+    <!-- Arm -->
+    <ellipse cx="280" cy="210" rx="12" ry="35" fill="url(#clawGradient)" transform="rotate(45 280 210)"/>
+    <ellipse cx="285" cy="200" rx="5" ry="15" fill="white" opacity="0.25" transform="rotate(45 285 200)"/>
+
+    <!-- Claw -->
+    <ellipse cx="315" cy="195" rx="18" ry="45" fill="url(#clawGradient)" transform="rotate(35 315 195)"/>
+    <ellipse cx="320" cy="180" rx="8" ry="20" fill="white" opacity="0.3" transform="rotate(35 320 180)"/>
+
+    <!-- Pincer top -->
+    <path d="M 330 165 Q 340 150 342 145 Q 344 140 338 142 Q 332 145 328 155 Z"
+          fill="url(#clawGradient)" stroke="#E85555" stroke-width="1.5"/>
+    <path d="M 335 155 Q 339 148 340 145" stroke="white" stroke-width="1.5" fill="none" opacity="0.4"/>
+
+    <!-- Pincer bottom -->
+    <path d="M 330 185 Q 340 195 343 200 Q 345 205 339 202 Q 333 198 328 188 Z"
+          fill="url(#clawGradient)" stroke="#E85555" stroke-width="1.5"/>
+  </g>
+
+  <!-- Legs with 3D effect (4 pairs) -->
+  <g filter="url(#shadow)">
+    <!-- Left legs -->
+    <ellipse cx="175" cy="250" rx="6" ry="35" fill="url(#bodyGradient)" transform="rotate(-20 175 250)"/>
+    <ellipse cx="173" cy="240" rx="2.5" ry="15" fill="white" opacity="0.2" transform="rotate(-20 173 240)"/>
+
+    <ellipse cx="185" cy="255" rx="5" ry="32" fill="url(#bodyGradient)" transform="rotate(-10 185 255)"/>
+    <ellipse cx="183" cy="245" rx="2" ry="14" fill="white" opacity="0.2" transform="rotate(-10 183 245)"/>
+
+    <ellipse cx="195" cy="258" rx="5" ry="30" fill="url(#bodyGradient)" transform="rotate(0 195 258)"/>
+    <ellipse cx="193" cy="248" rx="2" ry="13" fill="white" opacity="0.2"/>
+
+    <ellipse cx="205" cy="260" rx="5" ry="28" fill="url(#bodyGradient)" transform="rotate(10 205 260)"/>
+
+    <!-- Right legs -->
+    <ellipse cx="225" cy="250" rx="6" ry="35" fill="url(#bodyGradient)" transform="rotate(20 225 250)"/>
+    <ellipse cx="227" cy="240" rx="2.5" ry="15" fill="white" opacity="0.2" transform="rotate(20 227 240)"/>
+
+    <ellipse cx="215" cy="255" rx="5" ry="32" fill="url(#bodyGradient)" transform="rotate(10 215 255)"/>
+    <ellipse cx="217" cy="245" rx="2" ry="14" fill="white" opacity="0.2" transform="rotate(10 217 245)"/>
+
+    <ellipse cx="205" cy="258" rx="5" ry="30" fill="url(#bodyGradient)" transform="rotate(0 205 258)"/>
+    <ellipse cx="207" cy="248" rx="2" ry="13" fill="white" opacity="0.2"/>
+
+    <ellipse cx="195" cy="260" rx="5" ry="28" fill="url(#bodyGradient)" transform="rotate(-10 195 260)"/>
+  </g>
+
+  <!-- Sparkles and stars for cuteness -->
+  <g opacity="0.8">
+    <path d="M 320 130 L 323 138 L 331 136 L 325 143 L 332 147 L 324 149 L 327 157 L 320 151 L 313 157 L 316 149 L 308 147 L 315 143 L 309 136 L 317 138 Z"
+          fill="#FFD700" filter="url(#shadow)"/>
+    <circle cx="320" cy="145" r="1.5" fill="white"/>
+
+    <path d="M 90 250 L 92 255 L 97 254 L 93 258 L 98 261 L 93 262 L 95 267 L 90 263 L 85 267 L 87 262 L 82 261 L 87 258 L 83 254 L 88 255 Z"
+          fill="#FFD700" filter="url(#shadow)"/>
+    <circle cx="90" cy="258" r="1" fill="white"/>
+
+    <circle cx="340" cy="180" r="3" fill="#FFE66D" opacity="0.7"/>
+    <circle cx="70" cy="220" r="2.5" fill="#FFE66D" opacity="0.7"/>
+  </g>
+
+  <!-- Cute heart floating nearby -->
+  <g opacity="0.6">
+    <path d="M 350 260 C 350 253 343 248 337 253 C 331 248 324 253 324 260 C 324 270 337 278 337 278 C 337 278 350 270 350 260 Z"
+          fill="#FF69B4" filter="url(#shadow)"/>
+    <ellipse cx="333" cy="258" rx="3" ry="4" fill="white" opacity="0.5"/>
   </g>
 </svg>
