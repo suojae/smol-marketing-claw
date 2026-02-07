@@ -1158,15 +1158,6 @@ async def autonomous_loop():
     """Queue-based event consumer — blocks until events arrive, zero polling"""
     print("⏰ 이벤트 기반 자율 루프 시작 (queue consumer)")
 
-    # Initial delay
-    await asyncio.sleep(5)
-
-    # Initial run
-    try:
-        await autonomous_engine.think(events=[{"type": "startup", "detail": "Server started"}])
-    except Exception as e:
-        print(f"❌ Error in initial run: {e}")
-
     # Event-driven loop — blocks on queue.get(), wakes only on real events
     while True:
         try:
