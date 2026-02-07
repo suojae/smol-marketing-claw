@@ -265,7 +265,12 @@ class ClaudeExecutor:
     def __init__(self):
         self.usage_tracker = UsageTracker()
 
-    async def execute(self, message: str, system_prompt: Optional[str] = None) -> str:
+    async def execute(
+        self,
+        message: str,
+        system_prompt: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ) -> str:
         """Execute Claude CLI command"""
         # Check usage limits before executing
         self.usage_tracker.check_limits()
@@ -276,7 +281,7 @@ class ClaudeExecutor:
             "claude",
             "--print",
             "--session-id",
-            str(uuid.uuid4()),
+            session_id or str(uuid.uuid4()),
             "--permission-mode",
             "bypassPermissions",
             "--output-format",
@@ -545,6 +550,7 @@ class DiscordBot(discord.Client):
         self.claude = claude
         self.notification_channel: Optional[discord.TextChannel] = None
         self.channel_id = int(os.getenv("DISCORD_CHANNEL_ID", "0"))
+        self._channel_sessions: Dict[int, str] = {}  # channel_id -> session_id
 
     async def on_ready(self):
         print(f"🤖 Discord 봇 로그인: {self.user}")
@@ -583,8 +589,14 @@ class DiscordBot(discord.Client):
                 return
 
         try:
+            # Get or create a persistent session for this channel
+            channel_id = message.channel.id
+            if channel_id not in self._channel_sessions:
+                self._channel_sessions[channel_id] = str(uuid.uuid4())
+            session_id = self._channel_sessions[channel_id]
+
             async with message.channel.typing():
-                response = await self.claude.execute(user_message)
+                response = await self.claude.execute(user_message, session_id=session_id)
 
             # Split long messages (Discord 2000 char limit)
             for chunk in self._split_message(response):
