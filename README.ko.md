@@ -1,12 +1,16 @@
 # 🦞 Smol Claw 🦞 (작은 가재봇)
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/suojae/smol-claw/main/.github/crayfish.png" alt="귀여운 가재" width="400"/>
+  <img src=".github/crayfish.svg" alt="귀여운 가재" width="400"/>
 
-  ### 나의 작고 귀여운 자율 AI 비서 🦞
+  ### *나의 작고 귀여운 자율 AI 비서* 🦞
 
-  AI가 스스로 생각하고 먼저 연락하는 자율 AI 서버
+  **AI가 스스로 생각하고 먼저 연락하는 자율 AI 서버**
+
+  *마치 코드를 지켜주는 작은 가재가 있는 것처럼!* 🦞
 </div>
+
+---
 
 [English Documentation](./README.md)
 

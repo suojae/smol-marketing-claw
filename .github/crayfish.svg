@@ -1,0 +1,65 @@
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cute Crayfish Illustration -->
+
+  <!-- Body -->
+  <ellipse cx="200" cy="150" rx="80" ry="60" fill="#FF6B6B" stroke="#E85555" stroke-width="3"/>
+
+  <!-- Tail -->
+  <path d="M 280 150 Q 320 140 340 145 Q 350 150 340 160 Q 320 165 280 155 Z" fill="#FF6B6B" stroke="#E85555" stroke-width="2"/>
+  <path d="M 340 145 Q 360 140 370 145 Q 375 150 370 155 Q 360 160 340 160 Z" fill="#FF8787" stroke="#E85555" stroke-width="2"/>
+
+  <!-- Legs (3 on each side) -->
+  <g id="legs">
+    <!-- Left legs -->
+    <line x1="180" y1="180" x2="160" y2="220" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
+    <line x1="190" y1="190" x2="175" y2="230" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
+    <line x1="200" y1="195" x2="190" y2="235" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Right legs -->
+    <line x1="220" y1="180" x2="240" y2="220" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
+    <line x1="210" y1="190" x2="225" y2="230" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
+    <line x1="200" y1="195" x2="210" y2="235" stroke="#E85555" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <!-- Claws -->
+  <!-- Left claw -->
+  <ellipse cx="130" cy="120" rx="15" ry="40" fill="#FF6B6B" stroke="#E85555" stroke-width="2" transform="rotate(-30 130 120)"/>
+  <path d="M 110 100 L 95 85 L 100 95 L 95 105 Z" fill="#FF6B6B" stroke="#E85555" stroke-width="2"/>
+  <line x1="150" y1="140" x2="130" y2="120" stroke="#E85555" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Right claw -->
+  <ellipse cx="270" cy="120" rx="15" ry="40" fill="#FF6B6B" stroke="#E85555" stroke-width="2" transform="rotate(30 270 120)"/>
+  <path d="M 290 100 L 305 85 L 300 95 L 305 105 Z" fill="#FF6B6B" stroke="#E85555" stroke-width="2"/>
+  <line x1="250" y1="140" x2="270" y2="120" stroke="#E85555" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Head -->
+  <ellipse cx="140" cy="130" rx="35" ry="40" fill="#FF6B6B" stroke="#E85555" stroke-width="3"/>
+
+  <!-- Eyes -->
+  <circle cx="130" cy="120" r="8" fill="white" stroke="#333" stroke-width="2"/>
+  <circle cx="132" cy="120" r="4" fill="#333"/>
+
+  <circle cx="155" cy="120" r="8" fill="white" stroke="#333" stroke-width="2"/>
+  <circle cx="157" cy="120" r="4" fill="#333"/>
+
+  <!-- Cute smile -->
+  <path d="M 130 135 Q 142 142 155 135" stroke="#333" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Antennae -->
+  <line x1="135" y1="95" x2="125" y2="70" stroke="#E85555" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="125" cy="70" r="4" fill="#FF6B6B"/>
+
+  <line x1="150" y1="95" x2="160" y2="70" stroke="#E85555" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="160" cy="70" r="4" fill="#FF6B6B"/>
+
+  <!-- Spots on body for cuteness -->
+  <circle cx="190" cy="140" r="5" fill="#FF8787" opacity="0.6"/>
+  <circle cx="210" cy="145" r="6" fill="#FF8787" opacity="0.6"/>
+  <circle cx="220" cy="155" r="4" fill="#FF8787" opacity="0.6"/>
+
+  <!-- Sparkles for extra cuteness -->
+  <g opacity="0.7">
+    <path d="M 300 100 L 302 105 L 307 103 L 303 108 L 308 110 L 303 112 L 305 117 L 300 113 L 295 117 L 297 112 L 292 110 L 297 108 L 293 103 L 298 105 Z" fill="#FFD700"/>
+    <path d="M 100 180 L 101 183 L 104 182 L 102 185 L 105 186 L 102 187 L 103 190 L 100 188 L 97 190 L 98 187 L 95 186 L 98 185 L 96 182 L 99 183 Z" fill="#FFD700"/>
+  </g>
+</svg>
