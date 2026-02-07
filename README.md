@@ -273,7 +273,6 @@ launchctl load ~/Library/LaunchAgents/com.smolclaw.plist
 launchctl list | grep smolclaw
 ```
 
-<<<<<<< HEAD
 ## Memory Management 🧠
 
 Smol Claw automatically manages memory for 24/7 operation:

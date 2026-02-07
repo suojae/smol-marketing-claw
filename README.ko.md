@@ -274,7 +274,6 @@ launchctl load ~/Library/LaunchAgents/com.smolclaw.plist
 launchctl list | grep smolclaw
 ```
 
-<<<<<<< HEAD
 ## 메모리 관리 🧠
 
 Smol Claw는 24/7 운영을 위해 자동으로 메모리를 관리합니다:
