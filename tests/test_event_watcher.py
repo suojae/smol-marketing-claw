@@ -1,25 +1,10 @@
-"""Tests for event-driven architecture (FileWatcher, Queue, Webhook)"""
+"""Tests for event-driven architecture (FileWatcher, Queue)"""
 
 import asyncio
-import os
-import sys
-from datetime import datetime, timedelta
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
-import pytest
-
-# Import from the server module
-import importlib.util
-
-spec = importlib.util.spec_from_file_location(
-    "server", os.path.join(os.path.dirname(os.path.dirname(__file__)), "autonomous-ai-server.py")
-)
-server = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(server)
-
-GitFileHandler = server.GitFileHandler
-event_queue = server.event_queue
+from src.config import event_queue
+from src.watcher import GitFileHandler
 
 
 def run(coro):
@@ -131,18 +116,3 @@ class TestEventQueue:
 
         assert len(events) == 3
         assert [e["type"] for e in events] == ["a", "b", "c"]
-
-
-class TestWebhookParsing:
-    def test_github_event_types_mapped(self):
-        """Verify event type mapping logic"""
-        event_map = {
-            "pull_request_review": "pr_review",
-            "issues": "new_issue",
-            "push": "push",
-            "check_run": "ci_status",
-        }
-
-        assert event_map["pull_request_review"] == "pr_review"
-        assert event_map["push"] == "push"
-        assert event_map.get("unknown_event", "unknown_event") == "unknown_event"

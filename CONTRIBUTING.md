@@ -1,6 +1,6 @@
-# Contributing to Smol Claw
+# Contributing to Smol Marketing Claw
 
-Thank you for your interest in contributing to Smol Claw! 🦞
+Thank you for your interest in contributing to Smol Marketing Claw! 🦞
 
 ## Code of Conduct
 
@@ -200,4 +200,4 @@ Feel free to:
 
 ---
 
-Thank you for contributing to Smol Claw! 🦞
+Thank you for contributing to Smol Marketing Claw! 🦞

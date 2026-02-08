@@ -28,13 +28,13 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        flake8 autonomous-ai-server.py --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 autonomous-ai-server.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 src/ autonomous-ai-server.py --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src/ autonomous-ai-server.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Format check with black
       continue-on-error: true
       run: |
-        black autonomous-ai-server.py --diff --check || echo "Formatting differences found but continuing"
+        black src/ autonomous-ai-server.py --diff --check || echo "Formatting differences found but continuing"
 
     - name: Run tests
       run: |

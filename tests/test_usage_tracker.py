@@ -1,32 +1,14 @@
 """Tests for UsageTracker"""
 
 import json
-import sys
-import os
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from importlib import import_module
-
-# Import from the server module (hyphenated filename)
-import importlib.util
-
-spec = importlib.util.spec_from_file_location(
-    "server", os.path.join(os.path.dirname(os.path.dirname(__file__)), "autonomous-ai-server.py")
-)
-server = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(server)
-
-UsageTracker = server.UsageTracker
-UsageLimitExceeded = server.UsageLimitExceeded
-CONFIG = server.CONFIG
+from src.usage import UsageTracker, UsageLimitExceeded
+from src.config import CONFIG
 
 
 @pytest.fixture

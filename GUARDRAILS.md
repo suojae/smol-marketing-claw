@@ -1,10 +1,10 @@
-# 🛡️ Smol Claw Guardrails
+# 🛡️ Smol Marketing Claw Guardrails
 
 This file defines safety rules and protection boundaries for your autonomous AI assistant.
 
 ## Purpose
 
-Guardrails prevent Smol Claw from:
+Guardrails prevent Smol Marketing Claw from:
 - Accessing sensitive files
 - Committing personal information
 - Performing destructive actions
@@ -30,7 +30,10 @@ id_dsa
 ### 2. Sensitive Patterns 🔍
 
 **Block commits containing:**
-- API keys (OpenAI, Anthropic, AWS, etc.)
+- SNS API keys (X_CONSUMER_KEY, X_CONSUMER_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET)
+- Threads credentials (THREADS_USER_ID, THREADS_ACCESS_TOKEN)
+- Discord tokens (DISCORD_BOT_TOKEN, DISCORD_WEBHOOK_URL)
+- Other API keys (OpenAI, Anthropic, AWS, etc.)
 - Passwords and auth tokens
 - Private keys and certificates
 - Database connection strings
@@ -89,7 +92,7 @@ rules:
 
 ## Guardrail Violations
 
-When a violation occurs, Smol Claw will:
+When a violation occurs, Smol Marketing Claw will:
 1. 🛑 Block the action immediately
 2. 📝 Record the violation in `memory/guardrail_violations.json`
 3. 📢 Notify you with details
@@ -129,7 +132,7 @@ CONFIG = {
 
 ## Auto-Suggestions
 
-Smol Claw can suggest guardrails based on your project:
+Smol Marketing Claw can suggest guardrails based on your project:
 
 ```bash
 # Coming soon!
@@ -164,14 +167,18 @@ Add these to GUARDRAILS.md? (y/n)
 ```python
 # Good ✅
 import os
-api_key = os.getenv("OPENAI_API_KEY")
+x_key = os.getenv("X_CONSUMER_KEY")
+threads_token = os.getenv("THREADS_ACCESS_TOKEN")
+discord_url = os.getenv("DISCORD_WEBHOOK_URL")
 ```
 
 ### ❌ Bad: Hardcoded Secrets
 
 ```python
-# Bad ❌
-api_key = "sk-1234567890abcdef"  # NEVER DO THIS!
+# Bad ❌ — NEVER DO THIS!
+x_key = "ck-1234567890abcdef"
+threads_token = "IGQVJx..."
+discord_url = "https://discord.com/api/webhooks/123/abc"
 ```
 
 ### ✅ Good: Secure Configuration
@@ -179,14 +186,24 @@ api_key = "sk-1234567890abcdef"  # NEVER DO THIS!
 ```python
 # config.py
 CONFIG = {
-    "api_key": os.getenv("API_KEY"),
-    "webhook_url": os.getenv("DISCORD_WEBHOOK_URL")
+    "x_consumer_key": os.getenv("X_CONSUMER_KEY", ""),
+    "x_consumer_secret": os.getenv("X_CONSUMER_SECRET", ""),
+    "x_access_token": os.getenv("X_ACCESS_TOKEN", ""),
+    "x_access_token_secret": os.getenv("X_ACCESS_TOKEN_SECRET", ""),
+    "threads_user_id": os.getenv("THREADS_USER_ID", ""),
+    "threads_access_token": os.getenv("THREADS_ACCESS_TOKEN", ""),
+    "webhook_url": os.getenv("DISCORD_WEBHOOK_URL", ""),
 }
 ```
 
 ```bash
 # .env (add to .gitignore!)
-API_KEY=sk-your-actual-key-here
+X_CONSUMER_KEY=your-consumer-key
+X_CONSUMER_SECRET=your-consumer-secret
+X_ACCESS_TOKEN=your-access-token
+X_ACCESS_TOKEN_SECRET=your-access-token-secret
+THREADS_USER_ID=your-threads-user-id
+THREADS_ACCESS_TOKEN=your-threads-access-token
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 ```
 
@@ -198,4 +215,4 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 
 ---
 
-🦞 **Remember**: Smol Claw is here to protect you! Trust the guardrails. 🛡️
+🦞 **Remember**: Smol Marketing Claw is here to protect you! Trust the guardrails. 🛡️

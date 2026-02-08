@@ -1,25 +1,10 @@
 """Tests for AutonomousEngine session reuse"""
 
-import os
-import sys
-import uuid
-from unittest.mock import AsyncMock, patch, MagicMock
-
 import pytest
 
-# Import from the server module
-import importlib.util
-
-spec = importlib.util.spec_from_file_location(
-    "server", os.path.join(os.path.dirname(os.path.dirname(__file__)), "autonomous-ai-server.py")
-)
-server = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(server)
-
-AutonomousEngine = server.AutonomousEngine
-ClaudeExecutor = server.ClaudeExecutor
-ContextCollector = server.ContextCollector
-GuardrailMemory = server.GuardrailMemory
+from src.engine import AutonomousEngine
+from src.executor import ClaudeExecutor
+from src.context import ContextCollector
 
 
 class TestSessionReuse:

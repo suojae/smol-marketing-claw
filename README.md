@@ -1,13 +1,13 @@
-# 🦞 Smol Claw 🦞
+# 🦞 Smol Marketing Claw 🦞
 
 <div align="center">
   <img src=".github/crayfish.svg" alt="Cute Crayfish" width="400"/>
 
-  ### *My tiny, cute autonomous AI assistant* 🦞
+  ### *Your tiny, cute AI marketing assistant* 🦞
 
-  **An autonomous AI server that thinks for itself and contacts you first.**
+  **An AI-powered SNS marketing plugin that posts, replies, and notifies for you.**
 
-  *Just like having a helpful little crayfish watching over your code!* 🦞
+  *Just like having a helpful little crayfish managing your social media!* 🦞
 </div>
 
 ---
@@ -16,95 +16,170 @@
 
 ## Features
 
-- **While(true) Server** - Runs continuously
-- **Autonomous Thinking** - AI judges by itself
-- **Proactive Contact** - Notifies without commands
-- **Context-Aware** - Analyzes Git, TODO, time, etc.
-- **Smart Memory** 🧠 - Remembers past decisions and avoids duplicates
-- **Security-First** 🛡️ - Tracks guardrail violations and learns safety patterns
-- **Secrets Protection** 🔒 - Prevents committing API keys, passwords, .env files
+- **X (Twitter) Integration** - Post tweets & reply to conversations
+- **Threads (Meta) Integration** - Publish posts & reply on Threads
+- **Discord Notifications** - Real-time marketing alerts via Discord
+- **Smart Memory** 🧠 - Remembers past actions and avoids duplicate posts
+- **Secrets Protection** 🔒 - Prevents leaking API keys, tokens, and credentials
 - **Safe by Default** - Pre-commit hooks and CI checks for sensitive data
+- **Claude AI Powered** - Intelligent content decisions via Anthropic Claude
 - **Zero Dependencies** - Simple JSON-based memory (no external DBs needed)
 
 ## Quick Start
 
-### 1. Install
+### 1. Environment Setup
+
+Create a `.env` file in the project root:
 
 ```bash
-cd ~/Documents/ai-assistant
+# X (Twitter) API Keys — required for X integration
+X_CONSUMER_KEY=your_consumer_key
+X_CONSUMER_SECRET=your_consumer_secret
+X_ACCESS_TOKEN=your_access_token
+X_ACCESS_TOKEN_SECRET=your_access_token_secret
+
+# Threads (Meta) API — required for Threads integration
+THREADS_USER_ID=your_threads_user_id
+THREADS_ACCESS_TOKEN=your_threads_access_token
+
+# Discord (optional — for notifications)
+DISCORD_BOT_TOKEN=your_bot_token
+DISCORD_CHANNEL_ID=your_channel_id
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+```
+
+### 2. Install
+
+```bash
+git clone https://github.com/suojae/smol-claw.git
+cd smol-claw
 pip install -r requirements.txt
 ```
 
-### 2. Run
+### 3. Run
 
 ```bash
 python autonomous-ai-server.py
 ```
 
-### 3. Check
+### 4. Check
 
 - Web: http://localhost:3000
 - API: `curl http://localhost:3000/status`
 
-## Usage
+## Usage Examples
 
-### Manual Question
+### Post a Tweet
 
 ```bash
-curl -X POST http://localhost:3000/ask \
+curl -X POST http://localhost:3000/sns/x/post \
   -H "Content-Type: application/json" \
-  -d '{"message":"Hello"}'
+  -d '{"text": "Hello from Smol Marketing Claw! 🦞"}'
 ```
 
-### Manual Think Trigger
+### Reply to a Tweet
 
 ```bash
-curl http://localhost:3000/think
+curl -X POST http://localhost:3000/sns/x/reply \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Thanks for the feedback!", "post_id": "1234567890"}'
 ```
 
-### Status Check
+### Post to Threads
+
+```bash
+curl -X POST http://localhost:3000/sns/threads/post \
+  -H "Content-Type: application/json" \
+  -d '{"text": "New product launch coming soon! 🦞"}'
+```
+
+### Reply on Threads
+
+```bash
+curl -X POST http://localhost:3000/sns/threads/reply \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Great question — check our link in bio!", "post_id": "9876543210"}'
+```
+
+### Check Server Status
 
 ```bash
 curl http://localhost:3000/status
 ```
 
-## Autonomous Examples
+### Ask Claude a Question
 
-### Scenario 1: Git Changes Detected
-
-```
-[10:30] AI thinking...
-Context: 5 Git changes found
-AI Decision: "Uncommitted files detected"
-
-Notification:
-━━━━━━━━━━━━━━━━━━━
-Hi!
-
-You have 5 uncommitted changes
-in Git. Would you like to commit?
-━━━━━━━━━━━━━━━━━━━
+```bash
+curl -X POST http://localhost:3000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Draft a tweet about our new feature"}'
 ```
 
-### Scenario 2: Time-Based Reminder
+## Marketing Scenarios
 
+### Scenario 1: Product Launch Tweet
+
+```bash
+# Post announcement on X
+curl -X POST http://localhost:3000/sns/x/post \
+  -d '{"text": "We just launched our new dashboard! Check it out at example.com 🚀"}' \
+  -H "Content-Type: application/json"
+
+# Cross-post to Threads
+curl -X POST http://localhost:3000/sns/threads/post \
+  -d '{"text": "We just launched our new dashboard! Check it out at example.com 🚀"}' \
+  -H "Content-Type: application/json"
 ```
-[14:00] AI thinking...
-Context: After lunch time
-AI Decision: "Suggest afternoon work"
 
-Notification:
-━━━━━━━━━━━━━━━━━━━
-Had lunch?
+### Scenario 2: Community Engagement
 
-You have 3 tasks left on
-your TODO. Ready to start?
-━━━━━━━━━━━━━━━━━━━
+```bash
+# Reply to customer feedback on X
+curl -X POST http://localhost:3000/sns/x/reply \
+  -d '{"text": "Thank you for the kind words! We appreciate your support 🦞", "post_id": "1234567890"}' \
+  -H "Content-Type: application/json"
 ```
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/` | Web dashboard |
+| GET | `/status` | Server status & usage info |
+| POST | `/ask` | Ask Claude a question |
+| POST | `/sns/x/post` | Post a tweet to X (Twitter) |
+| POST | `/sns/x/reply` | Reply to a tweet on X |
+| POST | `/sns/threads/post` | Post to Threads (Meta) |
+| POST | `/sns/threads/reply` | Reply to a post on Threads |
+
+### SNS Request/Response Format
+
+**Post Request Body:**
+```json
+{ "text": "Your post content here" }
+```
+
+**Reply Request Body:**
+```json
+{ "text": "Your reply content", "post_id": "target_post_id" }
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "post_id": "1234567890",
+  "text": "Your post content here"
+}
+```
+
+**Text Limits:**
+- X (Twitter): 280 characters (auto-truncated)
+- Threads (Meta): 500 characters (auto-truncated)
 
 ## Configuration
 
-Edit the `CONFIG` object in `autonomous-ai-server.py`:
+Edit environment variables or the `CONFIG` object in `src/config.py`:
 
 ```python
 CONFIG = {
@@ -116,12 +191,12 @@ CONFIG = {
 
 ## Secrets Protection 🛡️
 
-Smol Claw protects you from accidentally committing sensitive information!
+Smol Marketing Claw protects you from accidentally leaking sensitive marketing API credentials!
 
 ### What's Protected
 
 Automatically detects and blocks:
-- 🔑 API keys (OpenAI, Anthropic, AWS, etc.)
+- 🔑 API keys (X Consumer Key, Threads Access Token, etc.)
 - 🔐 Passwords and auth tokens
 - 🔒 Private keys and certificates
 - 💳 Database connection strings
@@ -160,36 +235,6 @@ python scripts/check-secrets.py --all
 python scripts/check-secrets.py config.py
 ```
 
-### Example: Blocked Commit
-
-```bash
-$ git commit -m "add config"
-🦞 Checking for sensitive information...
-
-======================================================================
-🛡️  SECURITY ALERT: Sensitive Information Detected! 🛡️
-======================================================================
-
-❌ API Key detected!
-   File: config.py:5
-   Line: api_key=[REDACTED]
-
-❌ Forbidden file!
-   File: .env
-
-======================================================================
-🦞 Smol Claw prevented you from committing sensitive data!
-
-What to do:
-  1. Remove sensitive information from the files
-  2. Use environment variables instead: os.getenv('API_KEY')
-  3. Add sensitive files to .gitignore
-  4. Update GUARDRAILS.md with protection rules
-======================================================================
-
-# Commit blocked! ✅
-```
-
 ### Best Practices
 
 **✅ Good: Use Environment Variables**
@@ -197,21 +242,16 @@ What to do:
 import os
 
 # Store in .env (add to .gitignore!)
-api_key = os.getenv("OPENAI_API_KEY")
+x_key = os.getenv("X_CONSUMER_KEY")
+threads_token = os.getenv("THREADS_ACCESS_TOKEN")
 webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
-```
-
-```bash
-# .env
-OPENAI_API_KEY=sk-your-key-here
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 ```
 
 **❌ Bad: Hardcode Secrets**
 ```python
 # NEVER DO THIS! ❌
-api_key = "sk-1234567890abcdef"
-password = "mypassword123"
+x_key = "ck-1234567890abcdef"
+threads_token = "IGQ..."
 ```
 
 ### Guardrails
@@ -222,115 +262,14 @@ See `GUARDRAILS.md` for:
 - Testing and bypass options
 - Security best practices
 
-🦞 **Your secrets are safe with Smol Claw!** 🛡️
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | Web dashboard |
-| GET | `/status` | Server status |
-| GET | `/think` | Manual think trigger |
-| POST | `/ask` | Manual question |
-
-## Auto-Start on macOS Boot
-
-### Using launchd (macOS)
-
-1. Create plist file:
-
-```bash
-cat > ~/Library/LaunchAgents/com.smolclaw.plist << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.smolclaw</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/usr/local/bin/python3</string>
-        <string>/Users/jeon/Documents/ai-assistant/autonomous-ai-server.py</string>
-    </array>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <true/>
-</dict>
-</plist>
-EOF
-```
-
-2. Load:
-
-```bash
-launchctl load ~/Library/LaunchAgents/com.smolclaw.plist
-```
-
-3. Check status:
-
-```bash
-launchctl list | grep smolclaw
-```
-
-## Memory Management 🧠
-
-Smol Claw automatically manages memory for 24/7 operation:
-
-### How It Works
-
-```
-memory/
-├── decisions.json              # Last 100 decisions
-├── summary.txt                 # Auto-generated summary
-└── guardrail_violations.json   # Security tracking 🛡️
-```
-
-### Features
-
-**1. Short-term Memory (Last 100 decisions)**
-- Stores recent decisions with timestamps
-- Auto-summarizes old decisions when limit exceeded
-- Provides context to AI for better decisions
-
-**2. Duplicate Detection**
-- Prevents same notification within 24 hours
-- Uses word-based similarity matching
-- No annoying repeated alerts!
-
-**3. Guardrail Tracking 🛡️** (Killer Feature!)
-- Records security violations
-- Learns safety patterns
-- Warns about frequently attempted risky actions
-
-### Example Memory Context
-
-```json
-{
-  "id": "a3f7b2c1",
-  "timestamp": "2026-02-07T15:30:00",
-  "action": "notify",
-  "message": "You have 5 uncommitted changes",
-  "reasoning": "Git changes detected, suggesting commit"
-}
-```
-
-### Memory Stats
-
-The AI sees:
-- Summary of past activity
-- Last 10 recent decisions
-- Security violation patterns
-- Frequently blocked targets
-
-**Result**: Smart, context-aware decisions without token bloat! 🦞
+🦞 **Your API keys are safe with Smol Marketing Claw!** 🛡️
 
 ## Discord Setup
 
 1. Create a bot at [Discord Developer Portal](https://discord.com/developers/applications)
 2. Enable **Message Content Intent** under Bot settings
 3. Invite the bot to your server with `Send Messages` permission
-4. Create a `.env` file:
+4. Add credentials to your `.env` file:
 
 ```bash
 DISCORD_BOT_TOKEN=your_bot_token
@@ -339,32 +278,13 @@ DISCORD_CHANNEL_ID=your_channel_id
 
 5. Get the channel ID: Discord Settings > Advanced > Developer Mode > Right-click channel > Copy Channel ID
 
-## Extensions
-
-### Discord Integration (Built-in) 🦞
-
-Set your Discord webhook URL as an environment variable:
-
-```bash
-# Create a webhook in Discord:
-# Server Settings → Integrations → Webhooks → New Webhook
-
-export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"
-python autonomous-ai-server.py
-```
-
-Or add to your shell profile (~/.zshrc or ~/.bashrc):
-
-```bash
-echo 'export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"' >> ~/.zshrc
-source ~/.zshrc
-```
-
 ## Requirements
 
-- Claude Pro subscription or API key
-- MacBook must be running (or deploy to server for 24/7)
-- Claude Code CLI installed
+- Python 3.9+
+- X (Twitter) Developer Account (for X integration)
+- Threads/Meta Developer Account (for Threads integration)
+- Discord Bot (optional, for notifications)
+- Claude Pro subscription or API key (for AI features)
 
 ## License
 
@@ -377,6 +297,8 @@ Contributions are welcome! Feel free to:
 - Suggest features
 - Submit pull requests
 
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
 ---
 
-Made by a human and Claude Code
+Made by a human and Claude Code 🦞

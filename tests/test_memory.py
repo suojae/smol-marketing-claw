@@ -1,20 +1,10 @@
 """Tests for memory management system"""
 
 import pytest
-import json
 import tempfile
-import importlib.util
-from pathlib import Path
 from datetime import datetime, timedelta
 
-# Import memory classes from file with hyphen in name
-sys_path = Path(__file__).parent.parent / "autonomous-ai-server.py"
-spec = importlib.util.spec_from_file_location("autonomous_ai_server", sys_path)
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
-
-SimpleMemory = module.SimpleMemory
-GuardrailMemory = module.GuardrailMemory
+from src.memory import SimpleMemory, GuardrailMemory
 
 
 class TestSimpleMemory:
