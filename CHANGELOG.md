@@ -1,9 +1,36 @@
 # Changelog
 
-All notable changes to Smol Claw will be documented in this file.
+All notable changes to Smol Marketing Claw will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.0] - 2026-02-09
+
+### Added
+- 🦞 **X (Twitter) SNS Integration**
+  - Post tweets via `/sns/x/post` endpoint
+  - Reply to tweets via `/sns/x/reply` endpoint
+  - Auto-truncation at 280 characters
+  - Configuration via `X_CONSUMER_KEY`, `X_CONSUMER_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET`
+
+- 🦞 **Threads (Meta) SNS Integration**
+  - Post to Threads via `/sns/threads/post` endpoint
+  - Reply to posts via `/sns/threads/reply` endpoint
+  - Auto-truncation at 500 characters
+  - Two-step publish process (create container → publish)
+  - Configuration via `THREADS_USER_ID`, `THREADS_ACCESS_TOKEN`
+
+### Removed
+- GitHub webhook integration (`/webhook/github` endpoint)
+- Git-aware autonomous features (commit suggestions, PR monitoring)
+- File watcher for code changes
+
+### Changed
+- 🦞 **Project rebranded from "Smol Claw" to "Smol Marketing Claw"**
+- Project identity pivoted from autonomous coding assistant to digital marketing AI plugin
+- Documentation fully rewritten for marketing use case
+- README, STRATEGY, IMPROVEMENTS, GUARDRAILS updated to reflect marketing focus
 
 ## [0.0.3] - 2026-02-07
 
