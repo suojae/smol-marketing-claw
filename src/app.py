@@ -15,7 +15,10 @@ from src.executor import ClaudeExecutor
 from src.discord_bot import DiscordBot
 from src.engine import AutonomousEngine
 from src.watcher import start_file_watcher
+from src.sns_routes import sns_router
+
 app = FastAPI(title="Autonomous AI Server")
+app.include_router(sns_router)
 
 # Global instances
 claude = ClaudeExecutor()

@@ -16,6 +16,14 @@ CONFIG = {
     "check_interval": 30 * 60,  # 30 minutes in seconds
     "autonomous_mode": True,
     "discord_webhook_url": os.getenv("DISCORD_WEBHOOK_URL", ""),  # Set via environment variable
+    # X (Twitter)
+    "x_consumer_key": os.getenv("X_CONSUMER_KEY", ""),
+    "x_consumer_secret": os.getenv("X_CONSUMER_SECRET", ""),
+    "x_access_token": os.getenv("X_ACCESS_TOKEN", ""),
+    "x_access_token_secret": os.getenv("X_ACCESS_TOKEN_SECRET", ""),
+    # Threads (Meta)
+    "threads_user_id": os.getenv("THREADS_USER_ID", ""),
+    "threads_access_token": os.getenv("THREADS_ACCESS_TOKEN", ""),
     "usage_limits": {
         "max_calls_per_minute": 5,
         "max_calls_per_hour": 20,
