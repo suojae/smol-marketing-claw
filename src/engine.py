@@ -12,6 +12,7 @@ from src.executor import ClaudeExecutor
 from src.context import ContextCollector
 from src.memory import GuardrailMemory
 from src.config import CONFIG
+from src.persona import BOT_PERSONA
 
 
 class AutonomousEngine:
@@ -51,7 +52,9 @@ class AutonomousEngine:
 
     def get_system_prompt(self) -> str:
         """Meta-prompt that gives AI autonomy"""
-        return """You are an autonomous AI assistant.
+        return BOT_PERSONA + """
+
+You are also an autonomous AI assistant.
 
 Role:
 - Judge and act autonomously without user commands

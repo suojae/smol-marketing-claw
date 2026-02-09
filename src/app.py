@@ -17,6 +17,7 @@ from src.discord_bot import DiscordBot
 from src.engine import AutonomousEngine
 from src.watcher import start_file_watcher
 from src.sns_routes import sns_router
+from src.persona import BOT_PERSONA
 
 app = FastAPI(title="Autonomous AI Server")
 app.include_router(sns_router)
@@ -59,7 +60,7 @@ class ThinkResponse(BaseModel):
 async def ask(request: AskRequest):
     """Manual question endpoint"""
     try:
-        response = await claude.execute(request.message)
+        response = await claude.execute(request.message, system_prompt=BOT_PERSONA)
         return AskResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

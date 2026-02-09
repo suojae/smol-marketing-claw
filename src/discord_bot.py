@@ -9,6 +9,7 @@ import discord
 from src.executor import ClaudeExecutor
 from src.usage import UsageLimitExceeded
 from src.config import CONFIG, MODEL_ALIASES, DEFAULT_MODEL
+from src.persona import BOT_PERSONA
 
 
 class DiscordBot(discord.Client):
@@ -75,10 +76,12 @@ class DiscordBot(discord.Client):
                 self._channel_history[channel_id] = []
             history = self._channel_history[channel_id]
 
-            context = None
+            parts = [BOT_PERSONA]
             if history:
                 lines = [f"{h['role']}: {h['text']}" for h in history[-self._max_history:]]
-                context = "Previous conversation:\n" + "\n".join(lines) + "\n\nContinue naturally."
+                parts.append("Previous conversation:\n" + "\n".join(lines))
+            parts.append("Continue naturally.")
+            context = "\n\n".join(parts)
 
             async with message.channel.typing():
                 try:

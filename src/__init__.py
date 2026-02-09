@@ -6,6 +6,7 @@ from src.usage import UsageLimitExceeded, UsageTracker
 from src.watcher import GitFileHandler
 from src.executor import ClaudeExecutor
 from src.memory import SimpleMemory, GuardrailMemory
+from src.persona import BOT_PERSONA
 from src.discord_bot import DiscordBot
 from src.engine import AutonomousEngine
 from src.x_client import XClient, XPostResult
@@ -24,6 +25,7 @@ __all__ = [
     "ClaudeExecutor",
     "SimpleMemory",
     "GuardrailMemory",
+    "BOT_PERSONA",
     "DiscordBot",
     "AutonomousEngine",
     "XClient",
