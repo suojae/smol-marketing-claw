@@ -19,6 +19,7 @@ class ClaudeExecutor:
         message: str,
         system_prompt: Optional[str] = None,
         session_id: Optional[str] = None,
+        model: Optional[str] = None,
     ) -> str:
         """Execute Claude CLI command"""
         # Check usage limits before executing
@@ -36,6 +37,9 @@ class ClaudeExecutor:
             "--output-format",
             "text",
         ]
+
+        if model:
+            args.extend(["--model", model])
 
         if system_prompt:
             args.extend(["--system-prompt", system_prompt])
