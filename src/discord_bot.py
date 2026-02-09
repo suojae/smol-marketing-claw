@@ -8,7 +8,7 @@ import discord
 
 from src.executor import ClaudeExecutor
 from src.usage import UsageLimitExceeded
-from src.config import CONFIG
+from src.config import CONFIG, MODEL_ALIASES, DEFAULT_MODEL
 
 
 class DiscordBot(discord.Client):
@@ -23,6 +23,7 @@ class DiscordBot(discord.Client):
         self.channel_id = int(os.getenv("DISCORD_CHANNEL_ID", "0"))
         self._channel_history: Dict[int, List[Dict[str, str]]] = {}  # channel_id -> conversation
         self._max_history = 10
+        self._current_model: str = DEFAULT_MODEL
 
     async def on_ready(self):
         print(f"Discord bot logged in: {self.user}")
@@ -44,6 +45,12 @@ class DiscordBot(discord.Client):
 
         user_message = message.content
         print(f"Discord message received: {user_message}")
+
+        # Handle !model command
+        content = message.content.strip()
+        if content.startswith("!model"):
+            await self._handle_model_command(message, content)
+            return
 
         # Guardrail: block dangerous commands
         blocked_patterns = [
@@ -76,12 +83,14 @@ class DiscordBot(discord.Client):
             async with message.channel.typing():
                 try:
                     response = await self.claude.execute(
-                        user_message, system_prompt=context
+                        user_message, system_prompt=context,
+                        model=MODEL_ALIASES[self._current_model],
                     )
                 except UsageLimitExceeded:
                     await asyncio.sleep(CONFIG["usage_limits"]["min_call_interval_seconds"])
                     response = await self.claude.execute(
-                        user_message, system_prompt=context
+                        user_message, system_prompt=context,
+                        model=MODEL_ALIASES[self._current_model],
                     )
 
             # Save to history
@@ -96,6 +105,30 @@ class DiscordBot(discord.Client):
                 await message.channel.send(chunk)
         except Exception as e:
             await message.channel.send(f"Error: {e}")
+
+    async def _handle_model_command(self, message: discord.Message, content: str):
+        """Handle !model command for switching Claude models."""
+        parts = content.split()
+        if len(parts) == 1:
+            model_id = MODEL_ALIASES[self._current_model]
+            available = ", ".join(MODEL_ALIASES.keys())
+            await message.channel.send(
+                f"Current model: **{self._current_model}** (`{model_id}`)\n"
+                f"Available: {available}"
+            )
+            return
+
+        alias = parts[1].lower()
+        if alias not in MODEL_ALIASES:
+            available = ", ".join(MODEL_ALIASES.keys())
+            await message.channel.send(
+                f"Unknown model `{alias}`. Available: {available}"
+            )
+            return
+
+        self._current_model = alias
+        model_id = MODEL_ALIASES[alias]
+        await message.channel.send(f"Model switched to **{alias}** (`{model_id}`)")
 
     async def send_notification(self, message: str):
         """Send a notification message to the configured channel"""

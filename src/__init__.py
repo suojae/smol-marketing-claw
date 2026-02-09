@@ -1,6 +1,6 @@
 """Smol Claw — Autonomous AI Server package."""
 
-from src.config import CONFIG, event_queue
+from src.config import CONFIG, event_queue, MODEL_ALIASES, DEFAULT_MODEL
 from src.context import ContextCollector
 from src.usage import UsageLimitExceeded, UsageTracker
 from src.watcher import GitFileHandler
@@ -15,6 +15,8 @@ from src.app import app
 __all__ = [
     "CONFIG",
     "event_queue",
+    "MODEL_ALIASES",
+    "DEFAULT_MODEL",
     "ContextCollector",
     "UsageLimitExceeded",
     "UsageTracker",

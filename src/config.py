@@ -10,6 +10,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+MODEL_ALIASES = {
+    "opus":   "claude-opus-4-6",
+    "sonnet": "claude-sonnet-4-5-20250929",
+    "haiku":  "claude-haiku-4-5-20251001",
+}
+DEFAULT_MODEL = "sonnet"
+
 CONFIG = {
     "port": 3000,
     "session_id": str(uuid.uuid4()),
