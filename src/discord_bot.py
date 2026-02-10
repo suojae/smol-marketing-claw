@@ -85,6 +85,10 @@ class DiscordBot(discord.Client):
                     self.hormones.trigger_cortisol(0.3)
                 return
 
+        # Hormone decay — prevent unbounded accumulation in Discord path
+        if self.hormones:
+            self.hormones.decay()
+
         # Sentiment analysis — run before main response so the tone affects behavior
         await self._analyze_sentiment(user_message)
 
