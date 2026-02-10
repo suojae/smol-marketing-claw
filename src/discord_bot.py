@@ -101,23 +101,36 @@ class DiscordBot(discord.Client):
             history = self._channel_history[channel_id]
 
             parts = [BOT_PERSONA]
+
+            # Inject hormone state into system prompt
+            if self.hormones:
+                params = self.hormones.get_control_params()
+                if params.persona_modifier:
+                    parts.append(params.persona_modifier)
+
             if history:
                 lines = [f"{h['role']}: {h['text']}" for h in history[-self._max_history:]]
                 parts.append("Previous conversation:\n" + "\n".join(lines))
             parts.append("Continue naturally.")
             context = "\n\n".join(parts)
 
+            # Determine effective model: hormone-based or manual selection
+            effective_model = self._current_model
+            if self.hormones:
+                params = self.hormones.get_control_params()
+                effective_model = params.model
+
             async with message.channel.typing():
                 try:
                     response = await self.claude.execute(
                         user_message, system_prompt=context,
-                        model=MODEL_ALIASES[self._current_model],
+                        model=MODEL_ALIASES[effective_model],
                     )
                 except UsageLimitExceeded:
                     await asyncio.sleep(CONFIG["usage_limits"]["min_call_interval_seconds"])
                     response = await self.claude.execute(
                         user_message, system_prompt=context,
-                        model=MODEL_ALIASES[self._current_model],
+                        model=MODEL_ALIASES[effective_model],
                     )
 
             # Save to history
