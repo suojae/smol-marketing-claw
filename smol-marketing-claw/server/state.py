@@ -32,22 +32,24 @@ class AppState:
     def __init__(self):
         _log("Initializing Smol Claw MCP state...")
 
-        # Usage tracker
+        # Usage tracker (core — must succeed)
         self.usage_tracker = UsageTracker(
             usage_file=str(MEMORY_DIR / "usage.json"),
             limits=CONFIG["usage_limits"],
         )
 
-        # Hormone system
+        # Hormone system (core — must succeed)
         self.hormones = DigitalHormones(
             state_file=str(MEMORY_DIR / "hormones.json"),
             usage_tracker=self.usage_tracker,
         )
 
-        # Hormone vector memory
-        self.hormone_memory = HormoneMemory(
-            persist_dir=str(MEMORY_DIR / "chroma"),
-        )
+        # Hormone vector memory (optional — graceful degradation)
+        try:
+            self.hormone_memory = HormoneMemory(persist_dir=str(MEMORY_DIR / "chroma"))
+        except Exception as e:
+            _log(f"HormoneMemory init failed (degraded mode): {e}")
+            self.hormone_memory = None
 
         # Decision memory
         self.memory = GuardrailMemory(memory_dir=str(MEMORY_DIR))
@@ -55,13 +57,23 @@ class AppState:
         # Context collector
         self.context_collector = ContextCollector()
 
-        # SNS clients
-        self.x_client = XClient()
-        self.threads_client = ThreadsClient()
+        # SNS clients (optional — graceful degradation)
+        try:
+            self.x_client = XClient()
+        except Exception as e:
+            _log(f"XClient init failed: {e}")
+            self.x_client = None
+
+        try:
+            self.threads_client = ThreadsClient()
+        except Exception as e:
+            _log(f"ThreadsClient init failed: {e}")
+            self.threads_client = None
 
         # Discord bot (lazy-initialized via discord_control tool)
         self.discord_bot = None
         self._discord_task = None
+        self._hormones_mtime = 0.0
 
         _log("Smol Claw MCP state initialized.")
 
@@ -72,7 +84,7 @@ class AppState:
             return
         try:
             mtime = state_file.stat().st_mtime
-            if not hasattr(self, "_hormones_mtime") or mtime > self._hormones_mtime:
+            if mtime > self._hormones_mtime:
                 self.hormones.state = self.hormones._load_state()
                 self._hormones_mtime = mtime
         except Exception:

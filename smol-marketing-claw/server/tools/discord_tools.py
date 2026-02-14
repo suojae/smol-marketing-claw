@@ -43,7 +43,10 @@ async def smol_claw_discord_control(action: str) -> dict:
         from src.discord_bot import DiscordBot
         from server.tools._discord_executor import McpPassthroughExecutor
 
-        executor = McpPassthroughExecutor(state.hormones)
+        executor = McpPassthroughExecutor(
+            hormones=state.hormones,
+            usage_tracker=state.usage_tracker,
+        )
         state.discord_bot = DiscordBot(
             executor=executor,
             hormones=state.hormones,

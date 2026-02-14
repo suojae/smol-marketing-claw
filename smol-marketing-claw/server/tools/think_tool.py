@@ -11,6 +11,14 @@ from src.persona import BOT_PERSONA
 from src.hormone_memory import HormoneEpisode
 
 
+POSITIVE_KEYWORDS = frozenset([
+    "success", "engagement", "liked", "popular", "growth", "completed",
+])
+NEGATIVE_KEYWORDS = frozenset([
+    "error", "fail", "blocked", "rejected", "timeout", "crash",
+])
+
+
 def _log(msg: str):
     print(msg, file=sys.stderr)
 
@@ -166,26 +174,7 @@ async def smol_claw_record_outcome(
         "reasoning": reasoning,
     }
 
-    # Update hormones from decision
-    if state.hormones:
-        text = json.dumps(decision, ensure_ascii=False).lower()
-
-        positive = ["success", "engagement", "liked", "popular", "growth", "completed"]
-        for kw in positive:
-            if kw in text:
-                state.hormones.trigger_dopamine(0.1)
-                break
-
-        if action in ("notify", "suggest", "remind"):
-            state.hormones.trigger_dopamine(0.05)
-
-        negative = ["error", "fail", "blocked", "rejected", "timeout", "crash"]
-        for kw in negative:
-            if kw in text:
-                state.hormones.trigger_cortisol(0.15)
-                break
-
-    # Check for duplicates
+    # Check for duplicates first (before hormone update to avoid rewarding duplicates)
     if action != "none" and message:
         if state.memory.should_skip_duplicate(message):
             _log("Skipping duplicate notification")
@@ -193,6 +182,31 @@ async def smol_claw_record_outcome(
             decision["reasoning"] = "Duplicate notification (sent within 24h)"
             if state.hormones:
                 state.hormones.trigger_cortisol(0.05)
+            state.memory.add_decision(decision)
+            if state.hormones:
+                state.hormones.save_state()
+            return {
+                "recorded": True,
+                "decision": decision,
+                "hormone_state": state.hormones.get_status_dict() if state.hormones else None,
+            }
+
+    # Update hormones from decision (only for non-duplicate decisions)
+    if state.hormones:
+        text = json.dumps(decision, ensure_ascii=False).lower()
+
+        for kw in POSITIVE_KEYWORDS:
+            if kw in text:
+                state.hormones.trigger_dopamine(0.1)
+                break
+
+        if action in ("notify", "suggest", "remind"):
+            state.hormones.trigger_dopamine(0.05)
+
+        for kw in NEGATIVE_KEYWORDS:
+            if kw in text:
+                state.hormones.trigger_cortisol(0.15)
+                break
 
     # Save decision to memory
     state.memory.add_decision(decision)

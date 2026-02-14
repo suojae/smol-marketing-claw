@@ -2,14 +2,8 @@
   "hooks": [
     {
       "event": "SessionStart",
-      "command": "python scripts/hormone_tick.py",
+      "command": "python3 scripts/hormone_tick.py",
       "description": "Apply hormone decay at session start"
-    },
-    {
-      "event": "PostToolUse",
-      "matcher": "smol_claw_post_x|smol_claw_post_threads|smol_claw_reply_x|smol_claw_reply_threads",
-      "command": "python scripts/post_tool_hormone_update.py",
-      "description": "Update hormones after SNS posting"
     }
   ]
 }

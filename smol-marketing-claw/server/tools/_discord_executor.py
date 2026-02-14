@@ -7,9 +7,6 @@ this executor generates local responses based on hormone state and persona.
 import sys
 from typing import Optional
 
-from src.usage import UsageTracker
-from src.persona import BOT_PERSONA
-
 
 def _log(msg: str):
     print(msg, file=sys.stderr)
@@ -22,8 +19,8 @@ class McpPassthroughExecutor:
     For full LLM responses, users should interact with Claude Code directly.
     """
 
-    def __init__(self, hormones=None):
-        self.usage_tracker = UsageTracker()
+    def __init__(self, hormones=None, usage_tracker=None):
+        self.usage_tracker = usage_tracker
         self.hormones = hormones
 
     async def execute(
@@ -39,8 +36,9 @@ class McpPassthroughExecutor:
         placeholder response. The Discord bot in MCP plugin mode serves
         primarily as a notification/status channel.
         """
-        self.usage_tracker.check_limits()
-        self.usage_tracker.record_call()
+        if self.usage_tracker:
+            self.usage_tracker.check_limits()
+            self.usage_tracker.record_call()
 
         # Build a response based on current emotional state
         label = "balanced"
