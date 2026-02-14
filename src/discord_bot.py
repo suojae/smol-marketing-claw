@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import uuid
+import warnings
 from typing import Optional, Dict, List
 
 import discord
@@ -35,9 +36,20 @@ class DiscordBot(discord.Client):
         intents = discord.Intents.default()
         intents.message_content = True
         super().__init__(intents=intents)
-        self.executor = executor or claude
-        if self.executor is None:
+
+        if executor is not None and claude is not None:
+            raise ValueError("pass either executor or claude, not both")
+        if executor is None and claude is not None:
+            warnings.warn(
+                "`claude` argument is deprecated; use `executor` instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            executor = claude
+        if executor is None:
             raise ValueError("executor is required")
+
+        self.executor = executor
         self.hormones = hormones
         self.notification_channel: Optional[discord.TextChannel] = None
         self.channel_id = int(os.getenv("DISCORD_CHANNEL_ID", "0"))

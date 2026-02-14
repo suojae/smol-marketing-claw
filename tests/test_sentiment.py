@@ -12,12 +12,12 @@ from src.config import MODEL_ALIASES
 
 def run(coro):
     """Helper to run async functions in sync tests."""
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 def _make_bot(mock_claude, hormones):
     with patch.dict("os.environ", {"DISCORD_CHANNEL_ID": "0"}):
-        return DiscordBot(claude=mock_claude, hormones=hormones)
+        return DiscordBot(executor=mock_claude, hormones=hormones)
 
 
 class TestPraiseMessage:

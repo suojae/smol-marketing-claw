@@ -12,6 +12,18 @@ from src.config import AI_PROVIDER
 from src.usage import UsageTracker
 
 
+async def _run_subprocess(cmd_args):
+    """Run a subprocess command and return process/stdout/stderr."""
+    proc = await asyncio.create_subprocess_exec(
+        *cmd_args,
+        stdin=asyncio.subprocess.DEVNULL,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await proc.communicate()
+    return proc, stdout, stderr
+
+
 class AIExecutor(Protocol):
     """Common executor interface used by app/engine/bot."""
 
@@ -64,24 +76,20 @@ class ClaudeExecutor:
 
         args.append(message)
 
-        async def _run(cmd_args):
-            proc = await asyncio.create_subprocess_exec(
-                *cmd_args,
-                stdin=asyncio.subprocess.DEVNULL,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            stdout, stderr = await proc.communicate()
-            return proc, stdout, stderr
-
         try:
-            proc, stdout, stderr = await asyncio.wait_for(_run(args), timeout=120.0)
+            proc, stdout, stderr = await asyncio.wait_for(
+                _run_subprocess(args),
+                timeout=120.0,
+            )
 
             # Retry once after delay if session is still locked
             if proc.returncode != 0 and "already in use" in stderr.decode():
                 print("Session busy, retrying in 2s...")
                 await asyncio.sleep(2)
-                proc, stdout, stderr = await asyncio.wait_for(_run(args), timeout=120.0)
+                proc, stdout, stderr = await asyncio.wait_for(
+                    _run_subprocess(args),
+                    timeout=120.0,
+                )
 
             if proc.returncode == 0:
                 print(f"[{datetime.now().isoformat()}] Completed")
@@ -107,6 +115,8 @@ class CodexExecutor:
     def _compose_prompt(message: str, system_prompt: Optional[str]) -> str:
         if not system_prompt:
             return message
+        # `codex exec` does not expose a dedicated --system-prompt flag,
+        # so we inline both sections with explicit delimiters.
         return (
             "System instructions:\n"
             f"{system_prompt}\n\n"
@@ -124,9 +134,8 @@ class CodexExecutor:
         """Execute Codex CLI command via `codex exec`."""
         self.usage_tracker.check_limits()
 
-        if session_id:
-            # codex exec is stateless by default; keep signature compatibility.
-            print(f"Codex executor ignoring session_id={session_id}")
+        # codex exec is stateless by default; keep signature compatibility.
+        _ = session_id
 
         fd, output_path = tempfile.mkstemp(prefix="codex-last-", suffix=".txt")
         os.close(fd)
@@ -147,18 +156,11 @@ class CodexExecutor:
         args.append(self._compose_prompt(message, system_prompt))
         print(f"[{datetime.now().isoformat()}] Executing with Codex CLI")
 
-        async def _run(cmd_args):
-            proc = await asyncio.create_subprocess_exec(
-                *cmd_args,
-                stdin=asyncio.subprocess.DEVNULL,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            stdout, stderr = await proc.communicate()
-            return proc, stdout, stderr
-
         try:
-            proc, stdout, stderr = await asyncio.wait_for(_run(args), timeout=180.0)
+            proc, stdout, stderr = await asyncio.wait_for(
+                _run_subprocess(args),
+                timeout=180.0,
+            )
             if proc.returncode != 0:
                 err_text = stderr.decode("utf-8").strip() or stdout.decode("utf-8").strip()
                 raise Exception(f"Exit code {proc.returncode}: {err_text}")

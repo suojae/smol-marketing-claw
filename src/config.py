@@ -22,6 +22,9 @@ MODEL_ALIASES_BY_PROVIDER = {
         "sonnet": os.getenv("CLAUDE_MODEL_SONNET", "claude-sonnet-4-5-20250929"),
         "haiku": os.getenv("CLAUDE_MODEL_HAIKU", "claude-haiku-4-5-20251001"),
     },
+    # Keep legacy alias keys across providers for compatibility with:
+    # - existing `!model <alias>` Discord command usage
+    # - hormone logic (`sonnet`/`haiku`) and persisted config defaults.
     "codex": {
         "opus": os.getenv("CODEX_MODEL_OPUS", "o3"),
         "sonnet": os.getenv("CODEX_MODEL_SONNET", "gpt-5"),
