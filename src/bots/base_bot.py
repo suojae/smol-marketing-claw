@@ -63,6 +63,7 @@ class BaseMarketingBot(discord.Client):
         self.bot_name = bot_name
         self.persona = persona
         self.own_channel_id = own_channel_id
+        self._primary_team_channel_id = team_channel_id
         self._team_channel_ids = {team_channel_id}
         if extra_team_channels:
             self._team_channel_ids.update(ch for ch in extra_team_channels if ch)
@@ -80,7 +81,8 @@ class BaseMarketingBot(discord.Client):
         names = {self.bot_name, self.user.name}
         if self.user.display_name:
             names.add(self.user.display_name)
-        return any(f"@{name}" in content for name in names)
+        content_lower = content.lower()
+        return any(f"@{name.lower()}" in content_lower for name in names)
 
     async def on_ready(self):
         _log(f"[{self.bot_name}] logged in as {self.user}")
@@ -289,10 +291,9 @@ class BaseMarketingBot(discord.Client):
 
     async def send_to_team(self, text: str):
         """Send a message to the first (primary) team channel."""
-        primary_id = next(iter(self._team_channel_ids))
-        channel = self.get_channel(primary_id)
+        channel = self.get_channel(self._primary_team_channel_id)
         if not channel:
-            _log(f"[{self.bot_name}] team channel {primary_id} not accessible")
+            _log(f"[{self.bot_name}] team channel {self._primary_team_channel_id} not accessible")
             return
         try:
             for chunk in self._split_message(text):
