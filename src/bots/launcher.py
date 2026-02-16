@@ -110,13 +110,14 @@ def _build_bots():
 
     bots = []
 
-    # Team Lead — no SNS clients (coordination only)
+    # Team Lead — X client for POST_X action
     token = DISCORD_TOKENS["lead"]
     if token:
         bot = TeamLeadBot(
             own_channel_id=DISCORD_CHANNELS["lead"],
             team_channel_id=team_ch,
             executor=executor,
+            clients={k: v for k, v in sns.items() if k == "x"},
         )
         bots.append((bot, token))
     else:
