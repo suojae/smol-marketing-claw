@@ -19,6 +19,10 @@ class InstagramPostResult:
     error: Optional[str] = None
 
 
+class RateLimitError(Exception):
+    """Raised when Instagram API returns 429."""
+
+
 class InstagramClient:
     """Async Instagram Graph API client (2-step: create container -> publish).
 
@@ -53,6 +57,8 @@ class InstagramClient:
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, params=params) as resp:
+                if resp.status == 429:
+                    raise RateLimitError("Instagram API rate limited (429)")
                 if resp.status >= 400:
                     body = await resp.text()
                     raise RuntimeError(f"Instagram API failed (HTTP {resp.status}): {body}")
@@ -72,6 +78,8 @@ class InstagramClient:
         }
         async with aiohttp.ClientSession() as session:
             async with session.post(url, params=params) as resp:
+                if resp.status == 429:
+                    raise RateLimitError("Instagram API rate limited (429)")
                 if resp.status >= 400:
                     body = await resp.text()
                     raise RuntimeError(f"Instagram API failed (HTTP {resp.status}): {body}")
@@ -97,14 +105,14 @@ class InstagramClient:
                 container_id = await self._create_container(text, image_url)
                 post_id = await self._publish(container_id)
                 return InstagramPostResult(success=True, post_id=post_id, text=text)
-            except RuntimeError as e:
-                if "429" in str(e) and attempt < _max_retries - 1:
+            except RateLimitError:
+                if attempt < _max_retries - 1:
                     await asyncio.sleep(2 ** attempt)
                     continue
-                return InstagramPostResult(success=False, text=text, error=str(e))
+                return InstagramPostResult(success=False, text=text, error="Rate limited (429)")
             except Exception as e:
                 if attempt == _max_retries - 1:
                     return InstagramPostResult(success=False, text=text, error=str(e))
                 await asyncio.sleep(2 ** attempt)
 
-        return InstagramPostResult(success=False, text=text, error="Max retries exceeded (429)")
+        return InstagramPostResult(success=False, text=text, error="Max retries exceeded")
