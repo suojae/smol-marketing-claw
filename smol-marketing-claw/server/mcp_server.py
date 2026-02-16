@@ -28,12 +28,15 @@ from server.tools import memory_tools  # noqa: F401, E402
 from server.tools import discord_tools  # noqa: F401, E402
 
 
-HOST = os.getenv("MCP_HOST", "0.0.0.0")
+HOST = os.getenv("MCP_HOST", "127.0.0.1")
 PORT = int(os.getenv("MCP_PORT", "8000"))
 
 
 def main():
     """Run the MCP server via Streamable HTTP transport."""
+    from server.setup import check_and_prompt_env
+
+    check_and_prompt_env(os.path.join(_project_root, ".env"))
     mcp.run(transport="http", host=HOST, port=PORT)
 
 

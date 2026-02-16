@@ -1,6 +1,6 @@
-# Smol Marketing Claw — Claude Code Plugin
+# Smol Marketing Claw — MCP HTTP Server
 
-Autonomous marketing AI with digital hormone system, SNS posting, and Discord integration — packaged as a Claude Code plugin.
+Autonomous marketing AI with digital hormone system, SNS posting, and Discord integration — packaged as a Streamable HTTP MCP server.
 
 ## Quick Start
 
@@ -8,8 +8,25 @@ Autonomous marketing AI with digital hormone system, SNS posting, and Discord in
 # Install dependencies
 pip install -r smol-marketing-claw/requirements.txt
 
-# Load plugin
-claude --plugin-dir ./smol-marketing-claw
+# Start the MCP server (default: http://127.0.0.1:8000)
+cd smol-marketing-claw
+python -m server.mcp_server
+```
+
+On first launch, the server will interactively prompt for any missing API keys and save them to `.env`.
+
+To change the bind address or port:
+```bash
+MCP_HOST=0.0.0.0 MCP_PORT=9000 python -m server.mcp_server
+```
+
+### Connecting via Codex CLI
+
+Add to `.codex/config.toml`:
+```toml
+[mcp_servers.smol-claw]
+type = "http"
+url = "http://127.0.0.1:8000/mcp"
 ```
 
 ## Setup
@@ -18,38 +35,23 @@ Set environment variables (or create a `.env` file in the project root):
 
 ```bash
 # X (Twitter) API
-export X_CONSUMER_KEY="..."
-export X_CONSUMER_SECRET="..."
-export X_ACCESS_TOKEN="..."
-export X_ACCESS_TOKEN_SECRET="..."
+X_CONSUMER_KEY="..."
+X_CONSUMER_SECRET="..."
+X_ACCESS_TOKEN="..."
+X_ACCESS_TOKEN_SECRET="..."
 
 # Threads (Meta) API
-export THREADS_USER_ID="..."
-export THREADS_ACCESS_TOKEN="..."
+THREADS_USER_ID="..."
+THREADS_ACCESS_TOKEN="..."
 
 # Discord
-export DISCORD_BOT_TOKEN="..."
-export DISCORD_CHANNEL_ID="..."
+DISCORD_BOT_TOKEN="..."
+DISCORD_CHANNEL_ID="..."
 ```
 
-Or use the interactive setup:
-```
-/smol-claw:setup
-```
+Missing keys are prompted interactively at server startup. You can skip any group to use the server without that integration.
 
-## Skills (Slash Commands)
-
-| Command | Description |
-|---------|-------------|
-| `/smol-claw:status` | Show hormones, usage, SNS config |
-| `/smol-claw:think` | Run autonomous think cycle |
-| `/smol-claw:hormone-nudge 0.2 -0.1` | Adjust hormones manually |
-| `/smol-claw:post x "text"` | Post to X/Twitter |
-| `/smol-claw:post threads "text"` | Post to Threads |
-| `/smol-claw:discord start` | Start Discord bot |
-| `/smol-claw:setup` | Environment setup guide |
-
-## MCP Tools (10)
+## MCP Tools (11)
 
 | Tool | Description |
 |------|-------------|
@@ -69,20 +71,16 @@ Or use the interactive setup:
 
 ```
 smol-marketing-claw/
-├── .claude-plugin/plugin.json    # Plugin manifest
-├── .mcp.json                     # MCP server config
-├── server/                       # MCP stdio server
-│   ├── mcp_server.py            # FastMCP entrypoint
+├── server/                       # MCP HTTP server
+│   ├── mcp_server.py            # FastMCP entrypoint (Streamable HTTP)
+│   ├── setup.py                 # Interactive .env setup
 │   ├── state.py                 # Global state manager
 │   └── tools/                   # Tool implementations
-├── skills/                       # Slash command definitions
-├── hooks/                        # Session/tool hooks
-├── scripts/                      # Hook scripts
-├── agents/                       # Sub-agent definitions
+├── scripts/                      # Utility scripts
 └── requirements.txt
 ```
 
-The plugin reuses modules from `src/` (hormones, memory, SNS clients, etc.) without modification. The MCP server replaces FastAPI — HTTP endpoints become MCP tools, REST routes become skills.
+The server reuses modules from `src/` (hormones, memory, SNS clients, etc.) without modification. FastMCP provides the Streamable HTTP transport, replacing the previous stdio plugin approach.
 
 ## Digital Hormone System
 
