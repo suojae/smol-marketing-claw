@@ -54,6 +54,7 @@ class BaseMarketingBot(discord.Client):
         team_channel_id: int,
         executor: Optional[AIExecutor] = None,
         clients: Optional[Dict[str, Any]] = None,
+        extra_team_channels: Optional[List[int]] = None,
     ):
         intents = discord.Intents.default()
         intents.message_content = True
@@ -62,13 +63,24 @@ class BaseMarketingBot(discord.Client):
         self.bot_name = bot_name
         self.persona = persona
         self.own_channel_id = own_channel_id
-        self.team_channel_id = team_channel_id
+        self._team_channel_ids = {team_channel_id}
+        if extra_team_channels:
+            self._team_channel_ids.update(ch for ch in extra_team_channels if ch)
         self.executor = executor
         self._clients: Dict[str, Any] = clients or {}
         self._action_lock = asyncio.Lock()
         self._channel_history: OrderedDict[int, List[Dict[str, str]]] = OrderedDict()
         self._max_history = 10
         self._current_model: str = DEFAULT_MODEL
+
+    def _is_text_mentioned(self, content: str) -> bool:
+        """Check if bot is mentioned by @name in plain text (LLM-generated mentions)."""
+        if not self.user:
+            return False
+        names = {self.bot_name, self.user.name}
+        if self.user.display_name:
+            names.add(self.user.display_name)
+        return any(f"@{name}" in content for name in names)
 
     async def on_ready(self):
         _log(f"[{self.bot_name}] logged in as {self.user}")
@@ -78,9 +90,9 @@ class BaseMarketingBot(discord.Client):
         if not self.user or message.author == self.user:
             return
 
-        is_team_channel = message.channel.id == self.team_channel_id
+        is_team_channel = message.channel.id in self._team_channel_ids
         is_own_channel = message.channel.id == self.own_channel_id
-        is_mentioned = self.user.mentioned_in(message)
+        is_mentioned = self.user.mentioned_in(message) or self._is_text_mentioned(message.content)
 
         if message.author.bot:
             # Bot messages: only respond if mentioned in team channel
@@ -114,7 +126,7 @@ class BaseMarketingBot(discord.Client):
 
         try:
             channel_id = message.channel.id
-            is_team_channel = channel_id == self.team_channel_id
+            is_team_channel = channel_id in self._team_channel_ids
 
             # Build context from conversation history (LRU eviction)
             if channel_id in self._channel_history:
@@ -276,10 +288,11 @@ class BaseMarketingBot(discord.Client):
             return f"[{self.bot_name}] 뉴스 검색 에러: {e}"
 
     async def send_to_team(self, text: str):
-        """Send a message to the team channel."""
-        channel = self.get_channel(self.team_channel_id)
+        """Send a message to the first (primary) team channel."""
+        primary_id = next(iter(self._team_channel_ids))
+        channel = self.get_channel(primary_id)
         if not channel:
-            _log(f"[{self.bot_name}] team channel {self.team_channel_id} not accessible")
+            _log(f"[{self.bot_name}] team channel {primary_id} not accessible")
             return
         try:
             for chunk in self._split_message(text):

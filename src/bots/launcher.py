@@ -105,75 +105,33 @@ def _create_sns_clients():
 def _build_bots():
     """Instantiate all 5 bots with their channel configs and SNS clients."""
     team_ch = DISCORD_CHANNELS["team"]
-    executor = _create_executor()
+    test_ch = DISCORD_CHANNELS.get("test", 0)
+    extra = [test_ch] if test_ch else []
     sns = _create_sns_clients()
 
+    # Bot definitions: (Class, token_key, sns_filter)
+    _BOT_DEFS = [
+        (TeamLeadBot, "lead", {"x"}),
+        (ThreadsBot, "threads", {"threads"}),
+        (LinkedInBot, "linkedin", {"linkedin"}),
+        (InstagramBot, "instagram", {"instagram"}),
+        (NewsBot, "news", {"news"}),
+    ]
+
     bots = []
-
-    # Team Lead — X client for POST_X action
-    token = DISCORD_TOKENS["lead"]
-    if token:
-        bot = TeamLeadBot(
-            own_channel_id=DISCORD_CHANNELS["lead"],
+    for BotClass, key, allowed_sns in _BOT_DEFS:
+        token = DISCORD_TOKENS[key]
+        if not token:
+            _log(f"Skipping {BotClass.__name__} — DISCORD_{key.upper()}_TOKEN not set")
+            continue
+        bot = BotClass(
+            own_channel_id=DISCORD_CHANNELS[key],
             team_channel_id=team_ch,
-            executor=executor,
-            clients={k: v for k, v in sns.items() if k == "x"},
+            extra_team_channels=extra,
+            executor=_create_executor(),  # independent executor per bot
+            clients={k: v for k, v in sns.items() if k in allowed_sns},
         )
         bots.append((bot, token))
-    else:
-        _log("Skipping TeamLeadBot — DISCORD_LEAD_TOKEN not set")
-
-    # Threads
-    token = DISCORD_TOKENS["threads"]
-    if token:
-        bot = ThreadsBot(
-            own_channel_id=DISCORD_CHANNELS["threads"],
-            team_channel_id=team_ch,
-            executor=executor,
-            clients={k: v for k, v in sns.items() if k == "threads"},
-        )
-        bots.append((bot, token))
-    else:
-        _log("Skipping ThreadsBot — DISCORD_THREADS_TOKEN not set")
-
-    # LinkedIn
-    token = DISCORD_TOKENS["linkedin"]
-    if token:
-        bot = LinkedInBot(
-            own_channel_id=DISCORD_CHANNELS["linkedin"],
-            team_channel_id=team_ch,
-            executor=executor,
-            clients={k: v for k, v in sns.items() if k == "linkedin"},
-        )
-        bots.append((bot, token))
-    else:
-        _log("Skipping LinkedInBot — DISCORD_LINKEDIN_TOKEN not set")
-
-    # Instagram
-    token = DISCORD_TOKENS["instagram"]
-    if token:
-        bot = InstagramBot(
-            own_channel_id=DISCORD_CHANNELS["instagram"],
-            team_channel_id=team_ch,
-            executor=executor,
-            clients={k: v for k, v in sns.items() if k == "instagram"},
-        )
-        bots.append((bot, token))
-    else:
-        _log("Skipping InstagramBot — DISCORD_INSTAGRAM_TOKEN not set")
-
-    # News
-    token = DISCORD_TOKENS["news"]
-    if token:
-        bot = NewsBot(
-            own_channel_id=DISCORD_CHANNELS["news"],
-            team_channel_id=team_ch,
-            executor=executor,
-            clients={k: v for k, v in sns.items() if k == "news"},
-        )
-        bots.append((bot, token))
-    else:
-        _log("Skipping NewsBot — DISCORD_NEWS_TOKEN not set")
 
     return bots
 

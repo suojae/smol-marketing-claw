@@ -1,10 +1,7 @@
 """LinkedIn bot — LinkedIn platform content creation and posting."""
 
-from typing import Any, Dict, Optional
-
 from src.bots.base_bot import BaseMarketingBot
 from src.bots.personas import LINKEDIN_PERSONA
-from src.executor import AIExecutor
 
 
 class LinkedInBot(BaseMarketingBot):
@@ -16,18 +13,5 @@ class LinkedInBot(BaseMarketingBot):
     - Industry insights and professional networking content
     """
 
-    def __init__(
-        self,
-        own_channel_id: int,
-        team_channel_id: int,
-        executor: Optional[AIExecutor] = None,
-        clients: Optional[Dict[str, Any]] = None,
-    ):
-        super().__init__(
-            bot_name="LinkedInBot",
-            persona=LINKEDIN_PERSONA,
-            own_channel_id=own_channel_id,
-            team_channel_id=team_channel_id,
-            executor=executor,
-            clients=clients,
-        )
+    def __init__(self, **kwargs):
+        super().__init__(bot_name="LinkedInBot", persona=LINKEDIN_PERSONA, **kwargs)

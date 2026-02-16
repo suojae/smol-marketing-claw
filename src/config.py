@@ -82,6 +82,7 @@ CONFIG = {
 # Discord multi-bot channel IDs
 DISCORD_CHANNELS = {
     "team": int(os.getenv("DISCORD_TEAM_CHANNEL_ID", "0")),
+    "test": int(os.getenv("DISCORD_TEST_CHANNEL_ID", "0")),
     "lead": int(os.getenv("DISCORD_LEAD_CHANNEL_ID", "0")),
     "threads": int(os.getenv("DISCORD_THREADS_CHANNEL_ID", "0")),
     "linkedin": int(os.getenv("DISCORD_LINKEDIN_CHANNEL_ID", "0")),
