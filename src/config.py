@@ -30,7 +30,7 @@ MODEL_ALIASES_BY_PROVIDER = {
     "codex": {
         "opus": os.getenv("CODEX_MODEL_OPUS", "gpt-5.3-codex"),
         "sonnet": os.getenv("CODEX_MODEL_SONNET", "gpt-5.3-codex"),
-        "haiku": os.getenv("CODEX_MODEL_HAIKU", "gpt-5.3-codex"),
+        "haiku": os.getenv("CODEX_MODEL_HAIKU", "gpt-5.3-codex-mini"),
     },
 }
 
@@ -61,10 +61,10 @@ CONFIG = {
     "threads_user_id": os.getenv("THREADS_USER_ID", ""),
     "threads_access_token": os.getenv("THREADS_ACCESS_TOKEN", ""),
     "usage_limits": {
-        "max_calls_per_minute": 9999,
-        "max_calls_per_hour": 99999,
-        "max_calls_per_day": 999999,
-        "min_call_interval_seconds": 0,
+        "max_calls_per_minute": 60,
+        "max_calls_per_hour": 500,
+        "max_calls_per_day": 10000,
+        "min_call_interval_seconds": 1,
         "warning_threshold_pct": 80,
         "paused": False,
     },

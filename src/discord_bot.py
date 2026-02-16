@@ -287,7 +287,7 @@ class DiscordBot(discord.Client):
             await message.channel.send("Usage: `!reject <id>`")
             return
         rec_id = parts[1].strip()
-        res = reject(rec_id)
+        res = await reject(rec_id)
         if res.get("success"):
             msg = f"Rejected id=`{rec_id}`"
         else:

@@ -91,4 +91,4 @@ async def approvals_approve(req: ApprovalRequest):
 
 @sns_router.post("/approvals/reject")
 async def approvals_reject(req: ApprovalRequest):
-    return reject(req.id)
+    return await reject(req.id)

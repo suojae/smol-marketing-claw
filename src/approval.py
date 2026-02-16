@@ -5,7 +5,7 @@ without an explicit human approval. Designed to be light‑touch and
 work in both MCP tool path and FastAPI routes.
 
 States: pending -> approved -> posted | failed
-         \-> rejected
+         \\-> rejected
 """
 
 from __future__ import annotations
@@ -15,20 +15,21 @@ import json
 import os
 import uuid
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import aiohttp
 
 from src.config import CONFIG
-from src.threads_client import ThreadsClient
-from src.x_client import XClient
 
 
 MEMORY_DIR = Path("memory")
 MEMORY_DIR.mkdir(exist_ok=True)
 QUEUE_FILE = MEMORY_DIR / "post_approvals.jsonl"
+
+# Protect concurrent JSONL reads/writes from MCP, Discord bot, and FastAPI
+_file_lock = asyncio.Lock()
 
 
 @dataclass
@@ -46,7 +47,7 @@ class PostApproval:
 
 
 def _now_iso() -> str:
-    return datetime.utcnow().isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _ensure_file():
@@ -126,10 +127,11 @@ async def enqueue_post(platform: str, action: str, text: str, meta: Optional[Dic
         created_at=_now_iso(),
         updated_at=_now_iso(),
     )
-    _append_record(rec)
+    async with _file_lock:
+        _append_record(rec)
     # Fire‑and‑forget notification
     asyncio.create_task(_notify_pending(rec))
-    return {"success": False, "queued": True, "approval_id": rec.id, "text": text}
+    return {"success": True, "queued": True, "approval_id": rec.id, "text": text}
 
 
 def list_pending() -> List[Dict[str, Any]]:
@@ -152,50 +154,54 @@ def _update_status(rec_id: str, status: str, **kw) -> Optional[PostApproval]:
     return found
 
 
-async def approve_and_execute(rec_id: str) -> Dict[str, Any]:
-    recs = _read_all()
-    target = next((r for r in recs if r.id == rec_id), None)
-    if not target:
-        return {"success": False, "error": "not_found"}
-    if target.status != "pending":
-        return {"success": False, "error": f"invalid_status:{target.status}"}
+def _get_client(platform: str):
+    """Return the singleton SNS client from AppState."""
+    from server.state import get_state
+    state = get_state()
+    if platform == "x":
+        return state.x_client
+    if platform == "threads":
+        return state.threads_client
+    raise ValueError(f"unsupported platform: {platform}")
 
-    # Mark approved first (audit trail)
-    _update_status(rec_id, "approved")
+
+async def approve_and_execute(rec_id: str) -> Dict[str, Any]:
+    async with _file_lock:
+        recs = _read_all()
+        target = next((r for r in recs if r.id == rec_id), None)
+        if not target:
+            return {"success": False, "error": "not_found"}
+        if target.status != "pending":
+            return {"success": False, "error": f"invalid_status:{target.status}"}
+        _update_status(rec_id, "approved")
 
     try:
-        if target.platform == "threads":
-            client = ThreadsClient()
-            if target.action == "post":
-                res = await client.post(target.text)
-            elif target.action == "reply":
-                res = await client.reply(target.text, target.meta.get("post_id", ""))
-            else:
-                raise ValueError("unsupported action")
-        elif target.platform == "x":
-            client = XClient()
-            if target.action == "post":
-                res = await client.post(target.text)
-            elif target.action == "reply":
-                res = await client.reply(target.text, target.meta.get("tweet_id", ""))
-            else:
-                raise ValueError("unsupported action")
+        client = _get_client(target.platform)
+        if target.action == "post":
+            res = await client.post(target.text)
+        elif target.action == "reply":
+            reply_id = target.meta.get("tweet_id") or target.meta.get("post_id", "")
+            res = await client.reply(target.text, reply_id)
         else:
-            raise ValueError("unsupported platform")
+            raise ValueError(f"unsupported action: {target.action}")
 
         if res.success:
-            _update_status(rec_id, "posted", post_id=res.post_id)
+            async with _file_lock:
+                _update_status(rec_id, "posted", post_id=res.post_id)
             return {"success": True, "post_id": res.post_id, "text": target.text}
         else:
-            _update_status(rec_id, "failed", error=res.error)
+            async with _file_lock:
+                _update_status(rec_id, "failed", error=res.error)
             return {"success": False, "error": res.error}
     except Exception as e:
-        _update_status(rec_id, "failed", error=str(e))
+        async with _file_lock:
+            _update_status(rec_id, "failed", error=str(e))
         return {"success": False, "error": str(e)}
 
 
-def reject(rec_id: str) -> Dict[str, Any]:
-    updated = _update_status(rec_id, "rejected")
+async def reject(rec_id: str) -> Dict[str, Any]:
+    async with _file_lock:
+        updated = _update_status(rec_id, "rejected")
     if not updated:
         return {"success": False, "error": "not_found"}
     return {"success": True}
