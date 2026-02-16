@@ -1,6 +1,6 @@
 """Team Lead bot — strategy, coordination, sub-bot management."""
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from src.bots.base_bot import BaseMarketingBot
 from src.bots.personas import TEAM_LEAD_PERSONA
@@ -21,6 +21,7 @@ class TeamLeadBot(BaseMarketingBot):
         own_channel_id: int,
         team_channel_id: int,
         executor: Optional[AIExecutor] = None,
+        clients: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             bot_name="TeamLead",
@@ -28,4 +29,5 @@ class TeamLeadBot(BaseMarketingBot):
             own_channel_id=own_channel_id,
             team_channel_id=team_channel_id,
             executor=executor,
+            clients=clients,
         )

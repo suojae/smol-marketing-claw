@@ -40,20 +40,84 @@ def _create_executor():
     return _Passthrough()
 
 
+def _create_sns_clients():
+    """Create SNS clients with graceful degradation."""
+    clients = {}
+
+    try:
+        from src.threads_client import ThreadsClient
+        c = ThreadsClient()
+        if c.is_configured:
+            clients["threads"] = c
+            _log("ThreadsClient loaded")
+        else:
+            _log("ThreadsClient not configured — skipping")
+    except Exception as e:
+        _log(f"ThreadsClient unavailable: {e}")
+
+    try:
+        from src.linkedin_client import LinkedInClient
+        c = LinkedInClient()
+        if c.is_configured:
+            clients["linkedin"] = c
+            _log("LinkedInClient loaded")
+        else:
+            _log("LinkedInClient not configured — skipping")
+    except Exception as e:
+        _log(f"LinkedInClient unavailable: {e}")
+
+    try:
+        from src.instagram_client import InstagramClient
+        c = InstagramClient()
+        if c.is_configured:
+            clients["instagram"] = c
+            _log("InstagramClient loaded")
+        else:
+            _log("InstagramClient not configured — skipping")
+    except Exception as e:
+        _log(f"InstagramClient unavailable: {e}")
+
+    try:
+        from src.news_client import NewsClient
+        c = NewsClient()
+        if c.is_configured:
+            clients["news"] = c
+            _log("NewsClient loaded")
+        else:
+            _log("NewsClient not configured — skipping")
+    except Exception as e:
+        _log(f"NewsClient unavailable: {e}")
+
+    try:
+        from src.x_client import XClient
+        c = XClient()
+        if c.is_configured:
+            clients["x"] = c
+            _log("XClient loaded")
+        else:
+            _log("XClient not configured — skipping")
+    except Exception as e:
+        _log(f"XClient unavailable: {e}")
+
+    return clients
+
+
 def _build_bots():
-    """Instantiate all 5 bots with their channel configs."""
+    """Instantiate all 5 bots with their channel configs and SNS clients."""
     team_ch = DISCORD_CHANNELS["team"]
     executor = _create_executor()
+    sns = _create_sns_clients()
 
     bots = []
 
-    # Team Lead
+    # Team Lead — X client for POST_X action
     token = DISCORD_TOKENS["lead"]
     if token:
         bot = TeamLeadBot(
             own_channel_id=DISCORD_CHANNELS["lead"],
             team_channel_id=team_ch,
             executor=executor,
+            clients={k: v for k, v in sns.items() if k == "x"},
         )
         bots.append((bot, token))
     else:
@@ -66,6 +130,7 @@ def _build_bots():
             own_channel_id=DISCORD_CHANNELS["threads"],
             team_channel_id=team_ch,
             executor=executor,
+            clients={k: v for k, v in sns.items() if k == "threads"},
         )
         bots.append((bot, token))
     else:
@@ -78,6 +143,7 @@ def _build_bots():
             own_channel_id=DISCORD_CHANNELS["linkedin"],
             team_channel_id=team_ch,
             executor=executor,
+            clients={k: v for k, v in sns.items() if k == "linkedin"},
         )
         bots.append((bot, token))
     else:
@@ -90,6 +156,7 @@ def _build_bots():
             own_channel_id=DISCORD_CHANNELS["instagram"],
             team_channel_id=team_ch,
             executor=executor,
+            clients={k: v for k, v in sns.items() if k == "instagram"},
         )
         bots.append((bot, token))
     else:
@@ -102,6 +169,7 @@ def _build_bots():
             own_channel_id=DISCORD_CHANNELS["news"],
             team_channel_id=team_ch,
             executor=executor,
+            clients={k: v for k, v in sns.items() if k == "news"},
         )
         bots.append((bot, token))
     else:

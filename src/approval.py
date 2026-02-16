@@ -158,11 +158,16 @@ def _get_client(platform: str):
     """Return the singleton SNS client from AppState."""
     from server.state import get_state
     state = get_state()
-    if platform == "x":
-        return state.x_client
-    if platform == "threads":
-        return state.threads_client
-    raise ValueError(f"unsupported platform: {platform}")
+    clients = {
+        "x": state.x_client,
+        "threads": state.threads_client,
+        "linkedin": getattr(state, "linkedin_client", None),
+        "instagram": getattr(state, "instagram_client", None),
+    }
+    client = clients.get(platform)
+    if not client:
+        raise ValueError(f"unsupported platform: {platform}")
+    return client
 
 
 async def approve_and_execute(rec_id: str) -> Dict[str, Any]:
@@ -178,7 +183,11 @@ async def approve_and_execute(rec_id: str) -> Dict[str, Any]:
     try:
         client = _get_client(target.platform)
         if target.action == "post":
-            res = await client.post(target.text)
+            if target.platform == "instagram":
+                image_url = target.meta.get("image_url", "")
+                res = await client.post(target.text, image_url)
+            else:
+                res = await client.post(target.text)
         elif target.action == "reply":
             reply_id = target.meta.get("tweet_id") or target.meta.get("post_id", "")
             res = await client.reply(target.text, reply_id)

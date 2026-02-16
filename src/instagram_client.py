@@ -107,12 +107,12 @@ class InstagramClient:
                 return InstagramPostResult(success=True, post_id=post_id, text=text)
             except RateLimitError:
                 if attempt < _max_retries - 1:
-                    await asyncio.sleep(2 ** attempt)
+                    await asyncio.sleep(min(2 ** attempt, 30))
                     continue
                 return InstagramPostResult(success=False, text=text, error="Rate limited (429)")
             except Exception as e:
                 if attempt == _max_retries - 1:
                     return InstagramPostResult(success=False, text=text, error=str(e))
-                await asyncio.sleep(2 ** attempt)
+                await asyncio.sleep(min(2 ** attempt, 30))
 
         return InstagramPostResult(success=False, text=text, error="Max retries exceeded")

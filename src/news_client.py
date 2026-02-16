@@ -48,12 +48,14 @@ class NewsClient:
 
     @staticmethod
     def _sanitize_keyword(keyword: str) -> str:
-        """Strip X Search operators to prevent query injection."""
-        sanitized = _OPERATOR_PATTERN.sub("", keyword)
-        # Remove standalone boolean operators that could break query structure
-        sanitized = re.sub(r"\bOR\b", " ", sanitized)
-        sanitized = re.sub(r"\bAND\b", " ", sanitized)
-        sanitized = sanitized.replace("(", " ").replace(")", " ")
+        """Whitelist-based sanitization: allow only safe characters."""
+        # Strip zero-width characters
+        sanitized = re.sub(r"[\u200b-\u200f\u2028-\u202f\ufeff]", "", keyword)
+        # Allow alphanumeric, spaces, basic CJK, and common punctuation only
+        sanitized = re.sub(r"[^\w\s\u3000-\u9fff\uac00-\ud7af.,!?#@\-]", " ", sanitized)
+        # Remove X Search operators
+        sanitized = _OPERATOR_PATTERN.sub("", sanitized)
+        sanitized = re.sub(r"\b(OR|AND)\b", " ", sanitized)
         return " ".join(sanitized.split()).strip()
 
     async def search(self, keyword: str, limit: int = 10) -> NewsSearchResult:
@@ -97,7 +99,7 @@ class NewsClient:
                     ) as resp:
                         if resp.status == 429:
                             if attempt < max_retries - 1:
-                                await asyncio.sleep(2 ** attempt)
+                                await asyncio.sleep(min(2 ** attempt, 30))
                                 continue
                             return NewsSearchResult(success=False, error="Rate limited (429)")
 
@@ -134,6 +136,6 @@ class NewsClient:
             except Exception as e:
                 if attempt == max_retries - 1:
                     return NewsSearchResult(success=False, error=str(e))
-                await asyncio.sleep(2 ** attempt)
+                await asyncio.sleep(min(2 ** attempt, 30))
 
         return NewsSearchResult(success=False, error="Max retries exceeded")

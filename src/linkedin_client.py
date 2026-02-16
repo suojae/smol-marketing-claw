@@ -98,6 +98,6 @@ class LinkedInClient:
             except Exception as e:
                 if attempt == _max_retries - 1:
                     return LinkedInPostResult(success=False, text=text, error=str(e))
-                await asyncio.sleep(2 ** attempt)
+                await asyncio.sleep(min(2 ** attempt, 30))
 
         return LinkedInPostResult(success=False, text=text, error="Max retries exceeded (429)")
