@@ -8,7 +8,7 @@ from src.bots.team_lead_bot import TeamLeadBot
 from src.bots.threads_bot import ThreadsBot
 from src.bots.linkedin_bot import LinkedInBot
 from src.bots.instagram_bot import InstagramBot
-from src.bots.news_bot import NewsBot
+from src.bots.news_bot import ResearcherBot
 
 
 def _log(msg: str):
@@ -115,7 +115,7 @@ def _build_bots():
         (ThreadsBot, "threads", {"threads"}),
         (LinkedInBot, "linkedin", {"linkedin"}),
         (InstagramBot, "instagram", {"instagram"}),
-        (NewsBot, "news", {"news"}),
+        (ResearcherBot, "news", {"news"}),
     ]
 
     bots = []

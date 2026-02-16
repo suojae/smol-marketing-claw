@@ -1,10 +1,10 @@
-"""News bot — market research, trend monitoring, competitor analysis."""
+"""Researcher bot — market research, trend monitoring, competitor analysis."""
 
 from src.bots.base_bot import BaseMarketingBot
 from src.bots.personas import NEWS_PERSONA
 
 
-class NewsBot(BaseMarketingBot):
+class ResearcherBot(BaseMarketingBot):
     """Market research and news monitoring bot.
 
     Responsibilities:
@@ -15,4 +15,4 @@ class NewsBot(BaseMarketingBot):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(bot_name="NewsBot", persona=NEWS_PERSONA, **kwargs)
+        super().__init__(bot_name="ResearcherBot", persona=NEWS_PERSONA, **kwargs)
