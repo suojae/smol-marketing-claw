@@ -8,8 +8,6 @@ from typing import Optional
 
 from src.config import CONFIG
 from src.usage import UsageTracker
-from src.hormones import DigitalHormones
-from src.hormone_memory import HormoneMemory
 from src.memory import GuardrailMemory
 from src.context import ContextCollector
 from src.x_client import XClient
@@ -37,19 +35,6 @@ class AppState:
             limits=CONFIG["usage_limits"],
         )
 
-        # Hormone system (core — must succeed)
-        self.hormones = DigitalHormones(
-            state_file=str(MEMORY_DIR / "hormones.json"),
-            usage_tracker=self.usage_tracker,
-        )
-
-        # Hormone vector memory (optional — graceful degradation)
-        try:
-            self.hormone_memory = HormoneMemory(persist_dir=str(MEMORY_DIR / "chroma"))
-        except Exception as e:
-            _log(f"HormoneMemory init failed (degraded mode): {e}")
-            self.hormone_memory = None
-
         # Decision memory
         self.memory = GuardrailMemory(memory_dir=str(MEMORY_DIR))
 
@@ -69,25 +54,28 @@ class AppState:
             _log(f"ThreadsClient init failed: {e}")
             self.threads_client = None
 
-        # Discord bot (lazy-initialized via discord_control tool)
-        self.discord_bot = None
-        self._discord_task = None
-        self._hormones_mtime = 0.0
+        try:
+            from src.linkedin_client import LinkedInClient
+            self.linkedin_client = LinkedInClient()
+        except Exception as e:
+            _log(f"LinkedInClient init failed: {e}")
+            self.linkedin_client = None
+
+        try:
+            from src.instagram_client import InstagramClient
+            self.instagram_client = InstagramClient()
+        except Exception as e:
+            _log(f"InstagramClient init failed: {e}")
+            self.instagram_client = None
+
+        try:
+            from src.news_client import NewsClient
+            self.news_client = NewsClient()
+        except Exception as e:
+            _log(f"NewsClient init failed: {e}")
+            self.news_client = None
 
         _log("Smol Claw MCP state initialized.")
-
-    def reload_hormones_if_stale(self):
-        """Reload hormone state from disk if externally modified (e.g. by hooks)."""
-        state_file = self.hormones.state_file
-        if not state_file.exists():
-            return
-        try:
-            mtime = state_file.stat().st_mtime
-            if mtime > self._hormones_mtime:
-                self.hormones.state = self.hormones._load_state()
-                self._hormones_mtime = mtime
-        except Exception:
-            pass
 
 
 # Module-level singleton

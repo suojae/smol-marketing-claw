@@ -16,7 +16,7 @@ from mcp.server.fastmcp import FastMCP
 # Create MCP server instance
 mcp = FastMCP(
     "smol-claw",
-    instructions="Smol Claw - Autonomous marketing AI with digital hormone system, SNS posting, and Discord integration.",
+    instructions="Smol Claw - Multi-agent marketing AI with SNS posting (X, Threads, LinkedIn, Instagram), news research, and Discord 5-bot system.",
 )
 
 # Import tool modules to register them with mcp
@@ -26,6 +26,7 @@ from server.tools import think_tool  # noqa: F401, E402
 from server.tools import context_tools  # noqa: F401, E402
 from server.tools import memory_tools  # noqa: F401, E402
 from server.tools import discord_tools  # noqa: F401, E402
+from server.tools import news_tools  # noqa: F401, E402
 
 
 HOST = os.getenv("MCP_HOST", "127.0.0.1")

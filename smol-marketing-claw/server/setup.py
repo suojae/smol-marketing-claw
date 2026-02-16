@@ -23,10 +23,43 @@ _KEY_GROUPS = [
         ],
     ),
     (
-        "Discord",
+        "LinkedIn API",
         [
-            "DISCORD_BOT_TOKEN",
-            "DISCORD_CHANNEL_ID",
+            "LINKEDIN_ACCESS_TOKEN",
+        ],
+    ),
+    (
+        "Instagram API",
+        [
+            "INSTAGRAM_USER_ID",
+            "INSTAGRAM_ACCESS_TOKEN",
+        ],
+    ),
+    (
+        "News (X Search)",
+        [
+            "NEWS_X_BEARER_TOKEN",
+        ],
+    ),
+    (
+        "Discord Bot Tokens",
+        [
+            "DISCORD_LEAD_TOKEN",
+            "DISCORD_THREADS_TOKEN",
+            "DISCORD_LINKEDIN_TOKEN",
+            "DISCORD_INSTAGRAM_TOKEN",
+            "DISCORD_NEWS_TOKEN",
+        ],
+    ),
+    (
+        "Discord Channel IDs",
+        [
+            "DISCORD_TEAM_CHANNEL_ID",
+            "DISCORD_LEAD_CHANNEL_ID",
+            "DISCORD_THREADS_CHANNEL_ID",
+            "DISCORD_LINKEDIN_CHANNEL_ID",
+            "DISCORD_INSTAGRAM_CHANNEL_ID",
+            "DISCORD_NEWS_CHANNEL_ID",
         ],
     ),
 ]
