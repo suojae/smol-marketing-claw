@@ -1,5 +1,6 @@
 """News client — X Search API-based keyword monitoring."""
 
+import asyncio
 import sys
 from dataclasses import dataclass, field
 from typing import Optional, List
@@ -27,6 +28,17 @@ class NewsSearchResult:
     error: Optional[str] = None
 
 
+import re
+
+# X Search operators that could alter query semantics
+_OPERATOR_PATTERN = re.compile(
+    r"\b(from|to|is|has|lang|url|retweets_of|context|entity|"
+    r"conversation_id|bio|bio_name|bio_location|place|place_country|"
+    r"point_radius|bounding_box|sample)\s*:",
+    re.IGNORECASE,
+)
+
+
 class NewsClient:
     """Search X (Twitter) for trending news and keyword monitoring."""
 
@@ -34,11 +46,21 @@ class NewsClient:
     def is_configured(self) -> bool:
         return bool(CONFIG["news_x_bearer_token"])
 
+    @staticmethod
+    def _sanitize_keyword(keyword: str) -> str:
+        """Strip X Search operators to prevent query injection."""
+        sanitized = _OPERATOR_PATTERN.sub("", keyword)
+        # Remove standalone boolean operators that could break query structure
+        sanitized = re.sub(r"\bOR\b", " ", sanitized)
+        sanitized = re.sub(r"\bAND\b", " ", sanitized)
+        sanitized = sanitized.replace("(", " ").replace(")", " ")
+        return " ".join(sanitized.split()).strip()
+
     async def search(self, keyword: str, limit: int = 10) -> NewsSearchResult:
         """Search recent tweets for a keyword.
 
         Args:
-            keyword: Search query.
+            keyword: Search query (operators are stripped for safety).
             limit: Max results (10-100).
         """
         bearer = CONFIG["news_x_bearer_token"]
@@ -48,50 +70,70 @@ class NewsClient:
                 error="NEWS_X_BEARER_TOKEN not configured.",
             )
 
+        safe_keyword = self._sanitize_keyword(keyword)
+        if not safe_keyword:
+            return NewsSearchResult(
+                success=False,
+                error="Keyword is empty after sanitization.",
+            )
+
         limit = max(10, min(100, limit))
 
         headers = {"Authorization": f"Bearer {bearer}"}
         params = {
-            "query": f"{keyword} -is:retweet lang:ko OR lang:en",
+            "query": f"{safe_keyword} -is:retweet lang:ko OR lang:en",
             "max_results": str(limit),
             "tweet.fields": "created_at,author_id,text",
             "expansions": "author_id",
             "user.fields": "username",
         }
 
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    X_SEARCH_API, headers=headers, params=params
-                ) as resp:
-                    data = await resp.json()
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        X_SEARCH_API, headers=headers, params=params
+                    ) as resp:
+                        if resp.status == 429:
+                            if attempt < max_retries - 1:
+                                await asyncio.sleep(2 ** attempt)
+                                continue
+                            return NewsSearchResult(success=False, error="Rate limited (429)")
 
-                    if resp.status >= 400:
-                        error_msg = data.get("detail", data.get("title", str(data)))
-                        return NewsSearchResult(success=False, error=error_msg)
-
-                    tweets = data.get("data", [])
-                    users = {}
-                    if "includes" in data and "users" in data["includes"]:
-                        for u in data["includes"]["users"]:
-                            users[u["id"]] = u.get("username", "")
-
-                    items = []
-                    for t in tweets:
-                        author_id = t.get("author_id", "")
-                        username = users.get(author_id, "")
-                        tweet_id = t.get("id", "")
-                        items.append(
-                            NewsItem(
-                                text=t.get("text", ""),
-                                author=username,
-                                created_at=t.get("created_at", ""),
-                                tweet_id=tweet_id,
-                                url=f"https://x.com/{username}/status/{tweet_id}" if username else "",
+                        if resp.status >= 400:
+                            body = await resp.text()
+                            return NewsSearchResult(
+                                success=False, error=f"HTTP {resp.status}: {body}"
                             )
-                        )
 
-                    return NewsSearchResult(success=True, items=items)
+                        data = await resp.json()
+                        tweets = data.get("data", [])
+                        users = {}
+                        if "includes" in data and "users" in data["includes"]:
+                            for u in data["includes"]["users"]:
+                                users[u["id"]] = u.get("username", "")
 
-        except Exception as e:
-            return NewsSearchResult(success=False, error=str(e))
+                        items = []
+                        for t in tweets:
+                            author_id = t.get("author_id", "")
+                            username = users.get(author_id, "")
+                            tweet_id = t.get("id", "")
+                            items.append(
+                                NewsItem(
+                                    text=t.get("text", ""),
+                                    author=username,
+                                    created_at=t.get("created_at", ""),
+                                    tweet_id=tweet_id,
+                                    url=f"https://x.com/{username}/status/{tweet_id}" if username else "",
+                                )
+                            )
+
+                        return NewsSearchResult(success=True, items=items)
+
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    return NewsSearchResult(success=False, error=str(e))
+                await asyncio.sleep(2 ** attempt)
+
+        return NewsSearchResult(success=False, error="Max retries exceeded")
