@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Redirect print to stderr to prevent stdout pollution in MCP stdio mode
 _stderr_print = lambda *a, **kw: print(*a, **kw, file=sys.stderr)
 
 SUPPORTED_AI_PROVIDERS = ("claude", "codex")

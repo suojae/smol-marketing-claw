@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -16,7 +17,7 @@ from src.x_client import XClient
 from src.threads_client import ThreadsClient
 
 # Resolve memory directory relative to plugin root
-PLUGIN_ROOT = Path(__file__).resolve().parent.parent
+PLUGIN_ROOT = Path(os.environ.get("CLAUDE_PLUGIN_ROOT", Path(__file__).resolve().parent.parent))
 MEMORY_DIR = PLUGIN_ROOT.parent / "memory"
 MEMORY_DIR.mkdir(exist_ok=True)
 

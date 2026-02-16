@@ -1,0 +1,9 @@
+{
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "command": "python3 scripts/hormone_tick.py",
+      "description": "Apply hormone decay at session start"
+    }
+  ]
+}

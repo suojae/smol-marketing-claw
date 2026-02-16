@@ -1,0 +1,6 @@
+{
+  "name": "smol-claw",
+  "version": "1.0.0",
+  "description": "Smol Claw - Autonomous marketing AI with digital hormone system, SNS posting, and Discord integration",
+  "entryPoint": ".mcp.json"
+}

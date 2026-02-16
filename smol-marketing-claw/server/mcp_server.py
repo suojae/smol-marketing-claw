@@ -1,7 +1,22 @@
-"""Smol Claw MCP HTTP server — FastMCP entrypoint."""
+"""Smol Claw MCP stdio server — FastMCP entrypoint."""
 
+import builtins
 import sys
 import os
+
+# === stdout protection ===
+# MCP JSON-RPC uses stdout exclusively. Override builtins.print to
+# always write to stderr, preventing existing module prints from
+# corrupting the protocol. MCP library uses its own transport, not print().
+_original_print = builtins.print
+
+
+def _safe_print(*args, **kwargs):
+    kwargs.setdefault("file", sys.stderr)
+    _original_print(*args, **kwargs)
+
+
+builtins.print = _safe_print
 
 # Ensure parent directory is on PYTHONPATH so `src.*` imports work
 _plugin_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,13 +43,9 @@ from server.tools import memory_tools  # noqa: F401, E402
 from server.tools import discord_tools  # noqa: F401, E402
 
 
-HOST = os.getenv("MCP_HOST", "0.0.0.0")
-PORT = int(os.getenv("MCP_PORT", "8000"))
-
-
 def main():
-    """Run the MCP server via Streamable HTTP transport."""
-    mcp.run(transport="http", host=HOST, port=PORT)
+    """Run the MCP server via stdio transport."""
+    mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
