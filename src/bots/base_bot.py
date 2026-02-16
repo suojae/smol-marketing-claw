@@ -1,6 +1,7 @@
 """Base class for all marketing bots."""
 
 import sys
+from collections import OrderedDict
 from typing import Optional, Dict, List
 
 import discord
@@ -21,6 +22,8 @@ class BaseMarketingBot(discord.Client):
     - #team-room: responds only when @mentioned (by user or other bots)
     """
 
+    _MAX_CHANNELS = 20  # LRU eviction threshold for channel history
+
     def __init__(
         self,
         bot_name: str,
@@ -38,7 +41,7 @@ class BaseMarketingBot(discord.Client):
         self.own_channel_id = own_channel_id
         self.team_channel_id = team_channel_id
         self.executor = executor
-        self._channel_history: Dict[int, List[Dict[str, str]]] = {}
+        self._channel_history: OrderedDict[int, List[Dict[str, str]]] = OrderedDict()
         self._max_history = 10
         self._current_model: str = DEFAULT_MODEL
 
@@ -84,9 +87,15 @@ class BaseMarketingBot(discord.Client):
         try:
             channel_id = message.channel.id
 
-            # Build context from conversation history
-            if channel_id not in self._channel_history:
+            # Build context from conversation history (LRU eviction)
+            if channel_id in self._channel_history:
+                self._channel_history.move_to_end(channel_id)
+            else:
                 self._channel_history[channel_id] = []
+                # Evict oldest channel if over capacity
+                while len(self._channel_history) > self._MAX_CHANNELS:
+                    evicted_id, _ = self._channel_history.popitem(last=False)
+                    _log(f"[{self.bot_name}] evicted channel history: {evicted_id}")
             history = self._channel_history[channel_id]
 
             parts = [self.persona]

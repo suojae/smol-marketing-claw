@@ -16,22 +16,28 @@ def _log(msg: str):
 
 
 def _create_executor():
-    """Create a passthrough executor for all bots.
+    """Create an executor for all bots.
 
-    Uses McpPassthroughExecutor which generates simple local responses.
-    For full LLM responses, connect a real executor (ClaudeExecutor/CodexExecutor).
+    Tries real AI executor first (ClaudeExecutor/CodexExecutor),
+    falls back to local passthrough if unavailable.
     """
     try:
-        from server.tools._discord_executor import McpPassthroughExecutor
-        return McpPassthroughExecutor()
-    except ImportError:
-        # Fallback: try importing with explicit path setup
-        import os, sys
-        plugin_root = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "smol-marketing-claw")
-        if plugin_root not in sys.path:
-            sys.path.insert(0, plugin_root)
-        from server.tools._discord_executor import McpPassthroughExecutor
-        return McpPassthroughExecutor()
+        from src.executor import create_executor
+        return create_executor()
+    except Exception as e:
+        _log(f"AI executor unavailable ({e}), using passthrough")
+
+    # Inline minimal passthrough — no sys.path manipulation needed
+    from typing import Optional
+
+    class _Passthrough:
+        usage_tracker = None
+
+        async def execute(self, message: str, system_prompt: Optional[str] = None,
+                          session_id: Optional[str] = None, model: Optional[str] = None) -> str:
+            return "메시지 확인했음. (passthrough 모드 — AI executor 미연결)"
+
+    return _Passthrough()
 
 
 def _build_bots():

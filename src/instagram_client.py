@@ -1,5 +1,6 @@
 """Instagram client using Meta Graph API (aiohttp-based)."""
 
+import asyncio
 from dataclasses import dataclass
 from typing import Optional
 
@@ -52,6 +53,9 @@ class InstagramClient:
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, params=params) as resp:
+                if resp.status >= 400:
+                    body = await resp.text()
+                    raise RuntimeError(f"Instagram API failed (HTTP {resp.status}): {body}")
                 data = await resp.json()
                 if "id" not in data:
                     raise RuntimeError(data.get("error", {}).get("message", str(data)))
@@ -68,13 +72,16 @@ class InstagramClient:
         }
         async with aiohttp.ClientSession() as session:
             async with session.post(url, params=params) as resp:
+                if resp.status >= 400:
+                    body = await resp.text()
+                    raise RuntimeError(f"Instagram API failed (HTTP {resp.status}): {body}")
                 data = await resp.json()
                 if "id" not in data:
                     raise RuntimeError(data.get("error", {}).get("message", str(data)))
                 return data["id"]
 
-    async def post(self, text: str, image_url: str) -> InstagramPostResult:
-        """Post an image with caption to Instagram.
+    async def post(self, text: str, image_url: str, _max_retries: int = 3) -> InstagramPostResult:
+        """Post an image with caption to Instagram (with exponential backoff on 429).
 
         Args:
             text: Caption text.
@@ -85,9 +92,19 @@ class InstagramClient:
             return InstagramPostResult(
                 success=False, text=text, error="Instagram requires an image_url."
             )
-        try:
-            container_id = await self._create_container(text, image_url)
-            post_id = await self._publish(container_id)
-            return InstagramPostResult(success=True, post_id=post_id, text=text)
-        except Exception as e:
-            return InstagramPostResult(success=False, text=text, error=str(e))
+        for attempt in range(_max_retries):
+            try:
+                container_id = await self._create_container(text, image_url)
+                post_id = await self._publish(container_id)
+                return InstagramPostResult(success=True, post_id=post_id, text=text)
+            except RuntimeError as e:
+                if "429" in str(e) and attempt < _max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+                    continue
+                return InstagramPostResult(success=False, text=text, error=str(e))
+            except Exception as e:
+                if attempt == _max_retries - 1:
+                    return InstagramPostResult(success=False, text=text, error=str(e))
+                await asyncio.sleep(2 ** attempt)
+
+        return InstagramPostResult(success=False, text=text, error="Max retries exceeded (429)")
