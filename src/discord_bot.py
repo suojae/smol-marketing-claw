@@ -11,7 +11,7 @@ import discord
 
 from src.executor import AIExecutor
 from src.usage import UsageLimitExceeded
-from src.config import CONFIG, MODEL_ALIASES, DEFAULT_MODEL
+from src.config import CONFIG, MODEL_ALIASES, DEFAULT_MODEL, AI_PROVIDER
 from src.persona import BOT_PERSONA
 from src.approval import approve_and_execute, reject, list_pending
 
@@ -217,10 +217,13 @@ class DiscordBot(discord.Client):
         parts = content.split()
         if len(parts) == 1:
             model_id = MODEL_ALIASES[self._current_model]
-            available = ", ".join(MODEL_ALIASES.keys())
+            available = ", ".join(
+                f"{k} → `{v}`" for k, v in MODEL_ALIASES.items()
+            )
             await message.channel.send(
-                f"Current model: **{self._current_model}** (`{model_id}`)\n"
-                f"Available: {available}"
+                f"**Provider**: `{AI_PROVIDER}`\n"
+                f"**Current model**: `{model_id}`\n"
+                f"**Available**:\n{available}"
             )
             return
 
@@ -234,7 +237,9 @@ class DiscordBot(discord.Client):
 
         self._current_model = alias
         model_id = MODEL_ALIASES[alias]
-        await message.channel.send(f"Model switched to **{alias}** (`{model_id}`)")
+        await message.channel.send(
+            f"Model switched to `{model_id}` (provider: `{AI_PROVIDER}`)"
+        )
 
     async def _handle_hormones_command(self, message: discord.Message):
         """Handle !hormones command to show current hormone state."""
