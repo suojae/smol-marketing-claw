@@ -46,9 +46,6 @@ CONFIG = {
     "port": 3000,
     "session_id": str(uuid.uuid4()),
     "ai_provider": AI_PROVIDER,
-    "check_interval": 30 * 60,  # 30 minutes in seconds
-    "autonomous_mode": True,
-    "discord_webhook_url": os.getenv("DISCORD_WEBHOOK_URL", ""),
     # X (Twitter)
     "x_consumer_key": os.getenv("X_CONSUMER_KEY", ""),
     "x_consumer_secret": os.getenv("X_CONSUMER_SECRET", ""),
