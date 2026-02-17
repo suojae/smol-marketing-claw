@@ -77,6 +77,8 @@ class BaseMarketingBot(discord.Client):
         self._current_model: str = DEFAULT_MODEL
         self._active: bool = True
         self._active_tasks: Dict[int, asyncio.Task] = {}  # channel_id → running Task
+        self._bot_chain_count: Dict[int, int] = {}  # channel_id → consecutive bot reply count
+        self._max_bot_chain: int = 5  # max bot-to-bot replies before stopping
 
     def _is_role_mentioned(self, message: discord.Message) -> bool:
         """Check if the bot's role is mentioned (Discord converts @BotName to role mention)."""
@@ -165,10 +167,18 @@ class BaseMarketingBot(discord.Client):
         if message.author.bot:
             # Bot messages: only respond if mentioned in team channel
             if is_team_channel and is_mentioned:
+                chain = self._bot_chain_count.get(message.channel.id, 0)
+                if chain >= self._max_bot_chain:
+                    _log(f"[{self.bot_name}] bot chain limit reached ({chain}/{self._max_bot_chain}), ignoring")
+                    return
+                self._bot_chain_count[message.channel.id] = chain + 1
                 await self._respond(message)
             return
 
-        # User messages
+        # User messages — reset bot chain counter
+        if is_team_channel:
+            self._bot_chain_count[message.channel.id] = 0
+
         if is_own_channel:
             # 1:1 channel — always respond
             await self._respond(message)
