@@ -142,10 +142,9 @@ def _build_bots():
         _BOT_REGISTRY[key] = bot
         bots.append((bot, token))
 
-    # Inject bot_registry into TeamLead (for fire/hire authority)
-    lead_bot = _BOT_REGISTRY.get("lead")
-    if lead_bot is not None:
-        lead_bot.bot_registry = _BOT_REGISTRY
+    # Inject bot_registry into all bots (needed for !cancel all + HR authority)
+    for bot_instance, _ in bots:
+        bot_instance.bot_registry = _BOT_REGISTRY
 
     # HR — created last, receives bot_registry reference
     token = DISCORD_TOKENS["hr"]

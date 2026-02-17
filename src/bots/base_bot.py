@@ -76,6 +76,7 @@ class BaseMarketingBot(discord.Client):
         self._max_history = 10
         self._current_model: str = DEFAULT_MODEL
         self._active: bool = True
+        self._rehired: bool = False  # set by HR on rehire → triggers onboarding context
         self._active_tasks: Dict[int, asyncio.Task] = {}  # channel_id → running Task
 
     def _is_role_mentioned(self, message: discord.Message) -> bool:
@@ -187,6 +188,15 @@ class BaseMarketingBot(discord.Client):
             history = self._channel_history[channel_id]
 
             parts = [self.persona]
+
+            # Onboarding context after rehire (fire → hire cycle)
+            if self._rehired:
+                parts.append(
+                    "[시스템 알림] 너는 방금 해고(컨텍스트 초기화) 후 재채용되었음. "
+                    "이전 대화 기록은 전부 삭제된 상태임. "
+                    "새로 온보딩한다고 생각하고, 팀에 합류 인사 후 업무에 바로 복귀할 것."
+                )
+                self._rehired = False
 
             if history:
                 lines = [f"{h['role']}: {h['text']}" for h in history[-self._max_history:]]
@@ -348,7 +358,23 @@ class BaseMarketingBot(discord.Client):
             return f"[{self.bot_name}] 뉴스 검색 에러: {e}"
 
     async def _handle_cancel(self, message: discord.Message):
-        """Cancel the active LLM task for this channel, if any."""
+        """Cancel active LLM tasks.
+
+        `!cancel`     — cancel this bot's task for the current channel.
+        `!cancel all` — cancel ALL bots' active tasks across all channels.
+        """
+        args = message.content.strip().split()
+        cancel_all = len(args) >= 2 and args[1].lower() == "all"
+
+        if cancel_all:
+            # Each bot independently cancels its own tasks
+            count = self._cancel_own_tasks()
+            if count:
+                await message.channel.send(
+                    f"[{self.bot_name}] {count}건 취소됨."
+                )
+            return
+
         channel_id = message.channel.id
         task = self._active_tasks.get(channel_id)
         if task and not task.done():
@@ -359,6 +385,15 @@ class BaseMarketingBot(discord.Client):
             # In 1:1 channels, inform the user.
             if channel_id == self.own_channel_id:
                 await message.channel.send(f"[{self.bot_name}] 취소할 작업이 없음.")
+
+    def _cancel_own_tasks(self) -> int:
+        """Cancel all of this bot's active tasks across all channels. Returns count."""
+        cancelled = 0
+        for ch_id, task in list(self._active_tasks.items()):
+            if task and not task.done():
+                task.cancel()
+                cancelled += 1
+        return cancelled
 
     async def _handle_clear(self, message: discord.Message):
         """Clear conversation history. `!clear` = current channel, `!clear all` = all."""
@@ -377,6 +412,7 @@ class BaseMarketingBot(discord.Client):
         lines = [
             f"**[{self.bot_name}] 명령어 목록**",
             "`!cancel` — 진행 중인 응답 취소",
+            "`!cancel all` — 모든 봇의 진행 중인 작업 전체 취소",
             "`!clear` — 현재 채널 대화 기록 초기화",
             "`!clear all` — 전체 채널 대화 기록 초기화",
             "`!help` — 이 명령어 목록 표시",

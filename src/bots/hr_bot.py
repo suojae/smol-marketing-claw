@@ -94,6 +94,7 @@ async def hire_bot(
         return f"[{caller}] {bot_or_msg.bot_name}은(는) 이미 활성 상태임. 추가 조치 불요함."
 
     bot_or_msg._active = True
+    bot_or_msg._rehired = True
     _log(f"[{caller}] HIRED: {bot_or_msg.bot_name} (key={key})")
     return f"[{caller}] {bot_or_msg.bot_name} 채용(재활성화) 완료됨."
 
