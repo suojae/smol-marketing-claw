@@ -238,10 +238,24 @@ async def startup_event():
         # Start queue consumer
         asyncio.create_task(autonomous_loop())
 
-    # Start Discord bot if configured
-    if discord_bot:
+    # Start multi-bot or legacy single bot
+    from src.config import DISCORD_TOKENS
+    has_multi_bot = any(DISCORD_TOKENS.values())
+
+    if has_multi_bot:
+        from src.bots.launcher import launch_all_bots
+        print("Starting multi-bot system...")
+
+        async def _start_multi_bots():
+            try:
+                await launch_all_bots()
+            except Exception as e:
+                print(f"Multi-bot system failed to start: {e}")
+
+        asyncio.create_task(_start_multi_bots())
+    elif discord_bot:
         token = os.getenv("DISCORD_BOT_TOKEN", "")
-        print("Starting Discord bot...")
+        print("Starting legacy Discord bot...")
 
         async def _start_discord():
             try:
@@ -251,6 +265,6 @@ async def startup_event():
 
         asyncio.create_task(_start_discord())
     else:
-        print("Discord bot not configured (set DISCORD_BOT_TOKEN in .env)")
+        print("Discord bot not configured (set DISCORD_*_TOKEN in .env)")
 
     print("Ready!")

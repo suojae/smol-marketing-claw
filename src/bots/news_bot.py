@@ -15,4 +15,9 @@ class ResearcherBot(BaseMarketingBot):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(bot_name="ResearcherBot", persona=NEWS_PERSONA, **kwargs)
+        super().__init__(
+            bot_name="ResearcherBot",
+            persona=NEWS_PERSONA,
+            aliases=["NewsBot"],
+            **kwargs,
+        )
