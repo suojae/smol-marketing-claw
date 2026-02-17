@@ -195,6 +195,7 @@ class BaseMarketingBot(discord.Client):
         try:
             channel_id = message.channel.id
             is_team_channel = channel_id in self._team_channel_ids
+            is_own_channel = channel_id == self.own_channel_id
 
             # Build context from conversation history (LRU eviction)
             if channel_id in self._channel_history:
@@ -266,11 +267,11 @@ class BaseMarketingBot(discord.Client):
                 for chunk in self._split_message(plain_text):
                     await message.channel.send(chunk)
 
-            # CR #1: Only execute actions in team channel (not 1:1 user channels)
-            if not is_team_channel:
+            # Actions allowed in team channel and bot's own 1:1 channel
+            if not is_team_channel and not is_own_channel:
                 if actions:
                     await message.channel.send(
-                        f"[{self.bot_name}] 액션은 팀 채널에서만 실행 가능함."
+                        f"[{self.bot_name}] 액션은 팀 채널 또는 1:1 채널에서만 실행 가능함."
                     )
                 return
 
