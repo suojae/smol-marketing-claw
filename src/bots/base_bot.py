@@ -78,6 +78,16 @@ class BaseMarketingBot(discord.Client):
         self._active: bool = True
         self._active_tasks: Dict[int, asyncio.Task] = {}  # channel_id → running Task
 
+    def _is_role_mentioned(self, message: discord.Message) -> bool:
+        """Check if the bot's role is mentioned (Discord converts @BotName to role mention)."""
+        if not message.role_mentions or not self.user:
+            return False
+        # Bot's own roles in guilds it belongs to
+        for role in message.role_mentions:
+            if role.name.lower() in {self.bot_name.lower()} | {a.lower() for a in self._aliases}:
+                return True
+        return False
+
     def _is_text_mentioned(self, content: str) -> bool:
         """Check if bot is mentioned by @name in plain text (LLM-generated mentions)."""
         if not self.user:
@@ -106,7 +116,11 @@ class BaseMarketingBot(discord.Client):
 
         is_team_channel = message.channel.id in self._team_channel_ids
         is_own_channel = message.channel.id == self.own_channel_id
-        is_mentioned = self.user.mentioned_in(message) or self._is_text_mentioned(message.content)
+        is_mentioned = (
+            self.user.mentioned_in(message)
+            or self._is_role_mentioned(message)
+            or self._is_text_mentioned(message.content)
+        )
 
         # --- Command dispatch (human-only) ---
         if not message.author.bot:

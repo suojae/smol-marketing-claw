@@ -140,7 +140,7 @@ class HRBot(BaseMarketingBot):
 
     def __init__(self, bot_registry=None, **kwargs):
         kwargs.pop("clients", None)  # HR has no SNS clients
-        super().__init__(bot_name="HR", persona=HR_PERSONA, **kwargs)
+        super().__init__(bot_name="HRBot", persona=HR_PERSONA, aliases=["HR"], **kwargs)
         self.bot_registry: Dict[str, BaseMarketingBot] = bot_registry or {}
 
     async def _execute_action(self, action_type: str, body: str) -> str:
