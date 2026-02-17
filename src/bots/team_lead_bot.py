@@ -1,6 +1,6 @@
 """Team Lead bot — strategy, coordination, sub-bot management."""
 
-from typing import Dict, Optional
+from typing import Dict
 
 from src.bots.base_bot import BaseMarketingBot
 from src.bots.personas import TEAM_LEAD_PERSONA
