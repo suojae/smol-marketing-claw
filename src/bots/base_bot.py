@@ -132,13 +132,21 @@ class BaseMarketingBot(discord.Client):
                 await self._handle_cancel(message)
                 return
 
-            if cmd in ("!clear", "!help"):
-                # 1:1 channel — always handle; team channel — only when mentioned
-                if is_own_channel or (is_team_channel and is_mentioned):
-                    if cmd == "!clear":
-                        await self._handle_clear(message)
-                    else:
-                        await self._handle_help(message)
+            if cmd == "!help":
+                # 1:1 channel — always handle
+                # Team channel — TeamLead responds as representative to avoid 6-bot noise
+                if is_own_channel or (is_team_channel and (is_mentioned or self.bot_name == "TeamLead")):
+                    await self._handle_help(message)
+                    return
+
+            if cmd == "!clear":
+                # 1:1 channel — always handle
+                if is_own_channel or (is_team_channel and (is_mentioned or self.bot_name == "TeamLead")):
+                    await self._handle_clear(message)
+                    return
+                # Team channel without mention — silently clear (TeamLead sends confirmation)
+                if is_team_channel:
+                    await self._handle_clear_silent(message)
                     return
 
         if message.author.bot:
@@ -371,6 +379,16 @@ class BaseMarketingBot(discord.Client):
             if channel_id in self._channel_history:
                 del self._channel_history[channel_id]
             await message.channel.send(f"[{self.bot_name}] 이 채널 대화 기록 초기화됨.")
+
+    async def _handle_clear_silent(self, message: discord.Message):
+        """Clear history without sending a message (for team channel noise prevention)."""
+        args = message.content.strip().split()
+        if len(args) >= 2 and args[1].lower() == "all":
+            self._channel_history.clear()
+        else:
+            channel_id = message.channel.id
+            if channel_id in self._channel_history:
+                del self._channel_history[channel_id]
 
     async def _handle_help(self, message: discord.Message):
         """Show available commands."""
