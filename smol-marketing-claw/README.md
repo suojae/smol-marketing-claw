@@ -1,6 +1,6 @@
 # Smol Marketing Claw — MCP HTTP Server
 
-Autonomous marketing AI with digital hormone system, SNS posting, and Discord integration — packaged as a Streamable HTTP MCP server.
+Multi-bot marketing AI with SNS posting and Discord integration — packaged as a Streamable HTTP MCP server.
 
 ## Quick Start
 
@@ -51,13 +51,12 @@ DISCORD_CHANNEL_ID="..."
 
 Missing keys are prompted interactively at server startup. You can skip any group to use the server without that integration.
 
-## MCP Tools (11)
+## MCP Tools (10)
 
 | Tool | Description |
 |------|-------------|
 | `smol_claw_status` | Full system status |
 | `smol_claw_context` | Git, TODOs, time context |
-| `smol_claw_hormone_nudge` | Manual hormone adjustment |
 | `smol_claw_think` | Autonomous think cycle |
 | `smol_claw_record_outcome` | Record think cycle result |
 | `smol_claw_memory_query` | Vector similarity search |
@@ -80,14 +79,4 @@ smol-marketing-claw/
 └── requirements.txt
 ```
 
-The server reuses modules from `src/` (hormones, memory, SNS clients, etc.) without modification. FastMCP provides the Streamable HTTP transport, replacing the previous stdio plugin approach.
-
-## Digital Hormone System
-
-Three-axis emotional state that controls AI behavior:
-
-- **Dopamine** (0-1): Reward signal. High = creative/bold, Low = cautious
-- **Cortisol** (0-1): Stress signal. High = defensive, Low = adventurous
-- **Energy** (0-1): Resource budget from usage quota remaining
-
-Hormones decay naturally and respond to events (successful posts, errors, user sentiment).
+The server reuses modules from `src/` (memory, SNS clients, persona, etc.) without modification. FastMCP provides the Streamable HTTP transport.

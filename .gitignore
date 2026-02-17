@@ -2,6 +2,8 @@ node_modules/
 *.log
 .DS_Store
 .env
+__pycache__/
+*.pyc
 
 # Memory files (user data)
 memory/

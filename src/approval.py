@@ -19,8 +19,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import aiohttp
-
 from src.config import CONFIG
 
 
@@ -82,40 +80,6 @@ def _write_all(recs: List[PostApproval]) -> None:
     tmp.replace(QUEUE_FILE)
 
 
-async def _notify_pending(rec: PostApproval) -> None:
-    """Notify via Discord webhook if configured. Non‑blocking best effort."""
-    webhook = CONFIG.get("discord_webhook_url")
-    if not webhook:
-        return
-
-    title = f"Approval Needed · {rec.platform}/{rec.action}"
-    desc_lines = [
-        f"ID: `{rec.id}`",
-        f"Status: `{rec.status}`",
-        f"Text:\n```\n{rec.text[:1800]}\n```",
-        "Approve: reply `!approve <ID>` · Reject: `!reject <ID>`",
-    ]
-    payload = {
-        "username": "Smol Claw",
-        "embeds": [
-            {
-                "title": title,
-                "description": "\n".join(desc_lines),
-                "color": 5793266,  # teal
-                "timestamp": _now_iso(),
-            }
-        ],
-    }
-
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(webhook, json=payload) as resp:
-                # Discord webhook returns 204 on success
-                _ = await resp.text()
-    except Exception:
-        pass
-
-
 async def enqueue_post(platform: str, action: str, text: str, meta: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     rec = PostApproval(
         id=str(uuid.uuid4())[:8],
@@ -129,8 +93,6 @@ async def enqueue_post(platform: str, action: str, text: str, meta: Optional[Dic
     )
     async with _file_lock:
         _append_record(rec)
-    # Fire‑and‑forget notification
-    asyncio.create_task(_notify_pending(rec))
     return {"success": True, "queued": True, "approval_id": rec.id, "text": text}
 
 
