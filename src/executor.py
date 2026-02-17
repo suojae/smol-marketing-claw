@@ -24,6 +24,32 @@ async def _run_subprocess(cmd_args):
     return proc, stdout, stderr
 
 
+async def run_cancellable(cmd_args, timeout: float):
+    """Run a subprocess with cancellation and timeout support.
+
+    On CancelledError or TimeoutError, kills the subprocess and waits
+    for it to exit before re-raising.
+    """
+    proc = await asyncio.create_subprocess_exec(
+        *cmd_args,
+        stdin=asyncio.subprocess.DEVNULL,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    try:
+        stdout, stderr = await asyncio.wait_for(
+            proc.communicate(), timeout=timeout,
+        )
+        return proc, stdout, stderr
+    except (asyncio.CancelledError, asyncio.TimeoutError):
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        await proc.wait()
+        raise
+
+
 class AIExecutor(Protocol):
     """Common executor interface used by app/engine/bot."""
 
@@ -77,19 +103,13 @@ class ClaudeExecutor:
         args.append(message)
 
         try:
-            proc, stdout, stderr = await asyncio.wait_for(
-                _run_subprocess(args),
-                timeout=120.0,
-            )
+            proc, stdout, stderr = await run_cancellable(args, timeout=120.0)
 
             # Retry once after delay if session is still locked
             if proc.returncode != 0 and "already in use" in stderr.decode():
                 print("Session busy, retrying in 2s...")
                 await asyncio.sleep(2)
-                proc, stdout, stderr = await asyncio.wait_for(
-                    _run_subprocess(args),
-                    timeout=120.0,
-                )
+                proc, stdout, stderr = await run_cancellable(args, timeout=120.0)
 
             if proc.returncode == 0:
                 print(f"[{datetime.now().isoformat()}] Completed")
@@ -157,10 +177,7 @@ class CodexExecutor:
         print(f"[{datetime.now().isoformat()}] Executing with Codex CLI")
 
         try:
-            proc, stdout, stderr = await asyncio.wait_for(
-                _run_subprocess(args),
-                timeout=180.0,
-            )
+            proc, stdout, stderr = await run_cancellable(args, timeout=180.0)
             if proc.returncode != 0:
                 err_text = stderr.decode("utf-8").strip() or stdout.decode("utf-8").strip()
                 raise Exception(f"Exit code {proc.returncode}: {err_text}")
