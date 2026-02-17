@@ -75,6 +75,7 @@ class BaseMarketingBot(discord.Client):
         self._channel_history: OrderedDict[int, List[Dict[str, str]]] = OrderedDict()
         self._max_history = 10
         self._current_model: str = DEFAULT_MODEL
+        self._active: bool = True
         self._active_tasks: Dict[int, asyncio.Task] = {}  # channel_id → running Task
 
     def _is_text_mentioned(self, content: str) -> bool:
@@ -91,7 +92,14 @@ class BaseMarketingBot(discord.Client):
     async def on_ready(self):
         _log(f"[{self.bot_name}] logged in as {self.user}")
 
+    def clear_history(self):
+        """대화 히스토리 전체 초기화."""
+        self._channel_history.clear()
+        _log(f"[{self.bot_name}] conversation history cleared")
+
     async def on_message(self, message: discord.Message):
+        if not self._active:
+            return
         # Guard: self.user can be None before on_ready fires
         if not self.user or message.author == self.user:
             return

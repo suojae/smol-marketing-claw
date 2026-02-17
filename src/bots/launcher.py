@@ -1,14 +1,17 @@
-"""Launcher for the 5-bot Discord system."""
+"""Launcher for the multi-bot Discord system."""
 
 import asyncio
 import sys
+from typing import Dict
 
 from src.config import DISCORD_CHANNELS, DISCORD_TOKENS
+from src.bots.base_bot import BaseMarketingBot
 from src.bots.team_lead_bot import TeamLeadBot
 from src.bots.threads_bot import ThreadsBot
 from src.bots.linkedin_bot import LinkedInBot
 from src.bots.instagram_bot import InstagramBot
 from src.bots.news_bot import ResearcherBot
+from src.bots.hr_bot import HRBot
 
 
 def _log(msg: str):
@@ -102,8 +105,13 @@ def _create_sns_clients():
     return clients
 
 
+_BOT_REGISTRY: Dict[str, BaseMarketingBot] = {}
+
+
 def _build_bots():
-    """Instantiate all 5 bots with their channel configs and SNS clients."""
+    """Instantiate all bots with their channel configs and SNS clients."""
+    _BOT_REGISTRY.clear()
+
     team_ch = DISCORD_CHANNELS["team"]
     test_ch = DISCORD_CHANNELS.get("test", 0)
     extra = [test_ch] if test_ch else []
@@ -128,10 +136,31 @@ def _build_bots():
             own_channel_id=DISCORD_CHANNELS[key],
             team_channel_id=team_ch,
             extra_team_channels=extra,
-            executor=_create_executor(),  # independent executor per bot
+            executor=_create_executor(),
             clients={k: v for k, v in sns.items() if k in allowed_sns},
         )
+        _BOT_REGISTRY[key] = bot
         bots.append((bot, token))
+
+    # Inject bot_registry into TeamLead (for fire/hire authority)
+    lead_bot = _BOT_REGISTRY.get("lead")
+    if lead_bot is not None:
+        lead_bot.bot_registry = _BOT_REGISTRY
+
+    # HR — created last, receives bot_registry reference
+    token = DISCORD_TOKENS["hr"]
+    if token:
+        bot = HRBot(
+            own_channel_id=DISCORD_CHANNELS["hr"],
+            team_channel_id=team_ch,
+            extra_team_channels=extra,
+            executor=_create_executor(),
+            bot_registry=_BOT_REGISTRY,
+        )
+        _BOT_REGISTRY["hr"] = bot
+        bots.append((bot, token))
+    else:
+        _log("Skipping HRBot — DISCORD_HR_TOKEN not set")
 
     return bots
 
