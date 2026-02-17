@@ -55,12 +55,14 @@ class BaseMarketingBot(discord.Client):
         executor: Optional[AIExecutor] = None,
         clients: Optional[Dict[str, Any]] = None,
         extra_team_channels: Optional[List[int]] = None,
+        aliases: Optional[List[str]] = None,
     ):
         intents = discord.Intents.default()
         intents.message_content = True
         super().__init__(intents=intents)
 
         self.bot_name = bot_name
+        self._aliases: List[str] = aliases or []
         self.persona = persona
         self.own_channel_id = own_channel_id
         self._primary_team_channel_id = team_channel_id
@@ -83,6 +85,7 @@ class BaseMarketingBot(discord.Client):
         names = {self.bot_name, self.user.name}
         if self.user.display_name:
             names.add(self.user.display_name)
+        names.update(self._aliases)
         content_lower = content.lower()
         return any(f"@{name.lower()}" in content_lower for name in names)
 

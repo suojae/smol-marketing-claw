@@ -216,3 +216,29 @@ async def test_concurrent_tasks_no_orphan():
 
     # task2 must still be reachable
     assert bot._active_tasks.get(OWN_CHANNEL) is task2
+
+
+# ---------------------------------------------------------------------------
+# Alias-based text mention detection
+# ---------------------------------------------------------------------------
+
+def test_alias_text_mention():
+    """Bot with aliases should respond to @OldName text mentions."""
+    bot = BaseMarketingBot(
+        bot_name="ResearcherBot",
+        persona="test",
+        own_channel_id=OWN_CHANNEL,
+        team_channel_id=TEAM_CHANNEL,
+        aliases=["NewsBot"],
+    )
+    fake_user = MagicMock()
+    fake_user.id = BOT_USER_ID
+    fake_user.name = "ResearcherBot"
+    fake_user.display_name = "ResearcherBot"
+    bot._connection = MagicMock()
+    bot._connection.user = fake_user
+
+    assert bot._is_text_mentioned("@NewsBot 조사해줘")
+    assert bot._is_text_mentioned("@newsbot 조사해줘")
+    assert bot._is_text_mentioned("@ResearcherBot 조사해줘")
+    assert not bot._is_text_mentioned("@ThreadsBot 조사해줘")
