@@ -102,12 +102,18 @@ async def hire_bot(
         return f"[{caller}] {bot_or_msg.bot_name}은(는) 이미 활성 상태임. 추가 조치 불요함."
 
     bot_or_msg._active = True
+    bot_or_msg._rehired = True
     _log(f"[{caller}] HIRED: {bot_or_msg.bot_name} (key={key})")
     return (
         f"[{caller}] {bot_or_msg.bot_name} 채용(재활성화) 완료됨.\n"
         f"@{bot_or_msg.bot_name} 새로 채용됨. 이전 기억 없는 상태임. "
         f"팀에 자기소개하고 현재 진행 중인 업무 브리핑 요청해."
     )
+
+
+# History thresholds for proactive management
+HISTORY_WARN_THRESHOLD = 10   # recommend reset
+HISTORY_FIRE_THRESHOLD = 15   # strongly recommend immediate reset
 
 
 # History thresholds for proactive management
