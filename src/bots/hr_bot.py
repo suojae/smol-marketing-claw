@@ -76,16 +76,24 @@ async def fire_bot(
     if not bot_or_msg._active:
         return f"[{caller}] {bot_or_msg.bot_name}은(는) 이미 비활성 상태임. 추가 조치 불요함."
 
+    # Cancel any active tasks before deactivating
+    for ch_id, task in list(bot_or_msg._active_tasks.items()):
+        if not task.done():
+            task.cancel()
     bot_or_msg._active = False
     bot_or_msg.clear_history()
     _log(f"[{caller}] FIRED: {bot_or_msg.bot_name} (key={key})")
-    return f"[{caller}] {bot_or_msg.bot_name} 해고 처리 완료됨. 컨텍스트 초기화됨."
+    return f"[{caller}] {bot_or_msg.bot_name} 해고 처리 완료됨. 컨텍스트 초기화, 진행 중 작업 취소됨."
 
 
 async def hire_bot(
     name: str, registry: Dict[str, BaseMarketingBot], caller: str = "HR",
 ) -> str:
-    """Reactivate a previously fired bot."""
+    """Reactivate a previously fired bot.
+
+    The return message includes @BotName mention so the rehired bot
+    receives a notification in the team channel and can onboard.
+    """
     key, bot_or_msg = resolve_bot(name, registry, caller)
     if key is None:
         return bot_or_msg
@@ -96,7 +104,16 @@ async def hire_bot(
     bot_or_msg._active = True
     bot_or_msg._rehired = True
     _log(f"[{caller}] HIRED: {bot_or_msg.bot_name} (key={key})")
-    return f"[{caller}] {bot_or_msg.bot_name} 채용(재활성화) 완료됨."
+    return (
+        f"[{caller}] {bot_or_msg.bot_name} 채용(재활성화) 완료됨.\n"
+        f"@{bot_or_msg.bot_name} 새로 채용됨. 이전 기억 없는 상태임. "
+        f"팀에 자기소개하고 현재 진행 중인 업무 브리핑 요청해."
+    )
+
+
+# History thresholds for proactive management
+HISTORY_WARN_THRESHOLD = 10   # recommend reset
+HISTORY_FIRE_THRESHOLD = 15   # strongly recommend immediate reset
 
 
 # History thresholds for proactive management

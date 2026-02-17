@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import signal
 import tempfile
 import uuid
 from datetime import datetime
@@ -27,14 +28,15 @@ async def _run_subprocess(cmd_args):
 async def run_cancellable(cmd_args, timeout: float):
     """Run a subprocess with cancellation and timeout support.
 
-    On CancelledError or TimeoutError, kills the subprocess and waits
-    for it to exit before re-raising.
+    On CancelledError or TimeoutError, kills the entire process group
+    (including child processes) and waits for exit before re-raising.
     """
     proc = await asyncio.create_subprocess_exec(
         *cmd_args,
         stdin=asyncio.subprocess.DEVNULL,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
+        start_new_session=True,  # own process group for clean kill
     )
     try:
         stdout, stderr = await asyncio.wait_for(
@@ -42,10 +44,14 @@ async def run_cancellable(cmd_args, timeout: float):
         )
         return proc, stdout, stderr
     except (asyncio.CancelledError, asyncio.TimeoutError):
+        # Kill entire process group (parent + children)
         try:
-            proc.kill()
-        except ProcessLookupError:
-            pass
+            os.killpg(proc.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
         await proc.wait()
         raise
 
@@ -103,13 +109,13 @@ class ClaudeExecutor:
         args.append(message)
 
         try:
-            proc, stdout, stderr = await run_cancellable(args, timeout=120.0)
+            proc, stdout, stderr = await run_cancellable(args, timeout=1200.0)
 
             # Retry once after delay if session is still locked
             if proc.returncode != 0 and "already in use" in stderr.decode():
                 print("Session busy, retrying in 2s...")
                 await asyncio.sleep(2)
-                proc, stdout, stderr = await run_cancellable(args, timeout=120.0)
+                proc, stdout, stderr = await run_cancellable(args, timeout=1200.0)
 
             if proc.returncode == 0:
                 print(f"[{datetime.now().isoformat()}] Completed")
@@ -122,7 +128,7 @@ class ClaudeExecutor:
             raise Exception(f"Exit code {proc.returncode}: {stderr.decode()}")
 
         except asyncio.TimeoutError:
-            raise Exception("Timeout (120s)")
+            raise Exception("Timeout (1200s)")
 
 
 class CodexExecutor:
@@ -177,7 +183,7 @@ class CodexExecutor:
         print(f"[{datetime.now().isoformat()}] Executing with Codex CLI")
 
         try:
-            proc, stdout, stderr = await run_cancellable(args, timeout=180.0)
+            proc, stdout, stderr = await run_cancellable(args, timeout=1200.0)
             if proc.returncode != 0:
                 err_text = stderr.decode("utf-8").strip() or stdout.decode("utf-8").strip()
                 raise Exception(f"Exit code {proc.returncode}: {err_text}")
@@ -197,7 +203,7 @@ class CodexExecutor:
                 print(warning)
             return response
         except asyncio.TimeoutError:
-            raise Exception("Timeout (180s)")
+            raise Exception("Timeout (1200s)")
         finally:
             try:
                 out_file.unlink(missing_ok=True)

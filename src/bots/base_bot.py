@@ -131,17 +131,38 @@ class BaseMarketingBot(discord.Client):
             cmd = content_stripped.split()[0].lower() if content_stripped else ""
 
             if cmd == "!cancel":
-                # !cancel works everywhere without mention
-                await self._handle_cancel(message)
+                args = content_stripped.split()
+                is_cancel_all = len(args) >= 2 and args[1].lower() == "all"
+
+                if is_own_channel:
+                    # 1:1 channel — always cancel own task
+                    await self._handle_cancel(message)
+                    return
+
+                if is_team_channel:
+                    if is_cancel_all or is_mentioned:
+                        # !cancel all → all bots cancel
+                        # !cancel @BotName → only mentioned bot cancels
+                        await self._handle_cancel(message)
+                    return
+
                 return
 
-            if cmd in ("!clear", "!help"):
-                # 1:1 channel — always handle; team channel — only when mentioned
-                if is_own_channel or (is_team_channel and is_mentioned):
-                    if cmd == "!clear":
-                        await self._handle_clear(message)
-                    else:
-                        await self._handle_help(message)
+            if cmd == "!help":
+                # 1:1 channel — always handle
+                # Team channel — TeamLead responds as representative to avoid 6-bot noise
+                if is_own_channel or (is_team_channel and (is_mentioned or self.bot_name == "TeamLead")):
+                    await self._handle_help(message)
+                    return
+
+            if cmd == "!clear":
+                # 1:1 channel — always handle
+                if is_own_channel or (is_team_channel and (is_mentioned or self.bot_name == "TeamLead")):
+                    await self._handle_clear(message)
+                    return
+                # Team channel without mention — silently clear (TeamLead sends confirmation)
+                if is_team_channel:
+                    await self._handle_clear_silent(message)
                     return
 
         if message.author.bot:
@@ -185,6 +206,7 @@ class BaseMarketingBot(discord.Client):
         try:
             channel_id = message.channel.id
             is_team_channel = channel_id in self._team_channel_ids
+            is_own_channel = channel_id == self.own_channel_id
 
             # Build context from conversation history (LRU eviction)
             if channel_id in self._channel_history:
@@ -223,6 +245,21 @@ class BaseMarketingBot(discord.Client):
                 )
             )
             self._active_tasks[channel_id_for_task] = task
+
+            async def _progress_reporter(ch, interval=120):
+                """Send periodic progress updates while the LLM task runs."""
+                elapsed = 0
+                while True:
+                    await asyncio.sleep(interval)
+                    elapsed += interval
+                    mins = elapsed // 60
+                    await ch.send(
+                        f"[{self.bot_name}] 아직 생각 중... ({mins}분 경과)"
+                    )
+
+            progress_task = asyncio.create_task(
+                _progress_reporter(message.channel)
+            )
             try:
                 async with message.channel.typing():
                     response = await task
@@ -230,6 +267,7 @@ class BaseMarketingBot(discord.Client):
                 await message.channel.send(f"[{self.bot_name}] 응답이 취소됨.")
                 return
             finally:
+                progress_task.cancel()
                 # Only remove if this task is still the registered one
                 if self._active_tasks.get(channel_id_for_task) is task:
                     del self._active_tasks[channel_id_for_task]
@@ -249,11 +287,11 @@ class BaseMarketingBot(discord.Client):
                 for chunk in self._split_message(plain_text):
                     await message.channel.send(chunk)
 
-            # CR #1: Only execute actions in team channel (not 1:1 user channels)
-            if not is_team_channel:
+            # Actions allowed in team channel and bot's own 1:1 channel
+            if not is_team_channel and not is_own_channel:
                 if actions:
                     await message.channel.send(
-                        f"[{self.bot_name}] 액션은 팀 채널에서만 실행 가능함."
+                        f"[{self.bot_name}] 액션은 팀 채널 또는 1:1 채널에서만 실행 가능함."
                     )
                 return
 
@@ -431,12 +469,23 @@ class BaseMarketingBot(discord.Client):
                 del self._channel_history[channel_id]
             await message.channel.send(f"[{self.bot_name}] 이 채널 대화 기록 초기화됨.")
 
+    async def _handle_clear_silent(self, message: discord.Message):
+        """Clear history without sending a message (for team channel noise prevention)."""
+        args = message.content.strip().split()
+        if len(args) >= 2 and args[1].lower() == "all":
+            self._channel_history.clear()
+        else:
+            channel_id = message.channel.id
+            if channel_id in self._channel_history:
+                del self._channel_history[channel_id]
+
     async def _handle_help(self, message: discord.Message):
         """Show available commands."""
         lines = [
             f"**[{self.bot_name}] 명령어 목록**",
-            "`!cancel` — 진행 중인 응답 취소",
-            "`!cancel all` — 전체 봇의 진행 중인 작업 일괄 취소",
+            "`!cancel @봇이름` — 특정 봇의 진행 중인 응답 취소",
+            "`!cancel all` — 모든 봇의 진행 중인 응답 취소",
+            "`!cancel` — (1:1 채널) 진행 중인 응답 취소",
             "`!clear` — 현재 채널 대화 기록 초기화",
             "`!clear all` — 전체 채널 대화 기록 초기화",
             "`!help` — 이 명령어 목록 표시",

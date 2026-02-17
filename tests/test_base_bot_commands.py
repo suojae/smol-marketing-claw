@@ -171,23 +171,23 @@ async def test_bot_author_commands_ignored():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_clear_team_channel_without_mention_ignored():
-    """!clear in team channel without mentioning the bot → ignored."""
+async def test_clear_team_channel_without_mention_silent():
+    """!clear in team channel without mention → clears silently (no message)."""
     bot = _make_bot()
     bot._channel_history[TEAM_CHANNEL] = [{"role": "user", "text": "hi"}]
 
     msg = _make_message("!clear", TEAM_CHANNEL)
     await bot.on_message(msg)
 
-    # History should remain untouched
-    assert TEAM_CHANNEL in bot._channel_history
+    # History should be cleared silently
+    assert TEAM_CHANNEL not in bot._channel_history
     msg.channel.send.assert_not_awaited()
 
 
 @pytest.mark.asyncio
 async def test_help_team_channel_without_mention_ignored():
-    """!help in team channel without mentioning the bot → ignored."""
-    bot = _make_bot()
+    """!help in team channel without mention → non-TeamLead bots stay silent."""
+    bot = _make_bot()  # bot_name="TestBot", not TeamLead
     msg = _make_message("!help", TEAM_CHANNEL)
     await bot.on_message(msg)
 
