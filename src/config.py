@@ -5,6 +5,8 @@ __version__ = "0.1.0"
 import os
 import sys
 import uuid
+from dataclasses import dataclass, field
+from typing import Dict
 
 from dotenv import load_dotenv
 
@@ -97,3 +99,78 @@ DISCORD_TOKENS = {
     "news": os.getenv("DISCORD_NEWS_TOKEN", ""),
     "hr": os.getenv("DISCORD_HR_TOKEN", ""),
 }
+
+
+# ── Typed config (new) ──────────────────────────────────────
+
+
+@dataclass
+class UsageLimitsConfig:
+    max_calls_per_minute: int = 60
+    max_calls_per_hour: int = 500
+    max_calls_per_day: int = 10000
+    min_call_interval_seconds: int = 1
+    warning_threshold_pct: int = 80
+    paused: bool = False
+
+
+@dataclass
+class SNSConfig:
+    x_consumer_key: str = ""
+    x_consumer_secret: str = ""
+    x_access_token: str = ""
+    x_access_token_secret: str = ""
+    threads_user_id: str = ""
+    threads_access_token: str = ""
+    linkedin_access_token: str = ""
+    instagram_user_id: str = ""
+    instagram_access_token: str = ""
+    news_x_bearer_token: str = ""
+
+
+@dataclass
+class DiscordConfig:
+    channels: Dict[str, int] = field(default_factory=dict)
+    tokens: Dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class AppConfig:
+    """Typed configuration — replaces CONFIG dict for new code."""
+
+    port: int = 3000
+    session_id: str = ""
+    ai_provider: str = "claude"
+    default_model: str = "sonnet"
+    require_manual_approval: bool = True
+    sns: SNSConfig = field(default_factory=SNSConfig)
+    discord: DiscordConfig = field(default_factory=DiscordConfig)
+    usage_limits: UsageLimitsConfig = field(default_factory=UsageLimitsConfig)
+
+    @classmethod
+    def from_env(cls) -> "AppConfig":
+        """Create AppConfig from environment variables."""
+        return cls(
+            port=int(os.getenv("PORT", "3000")),
+            session_id=CONFIG["session_id"],
+            ai_provider=AI_PROVIDER,
+            default_model=DEFAULT_MODEL,
+            require_manual_approval=CONFIG["require_manual_approval"],
+            sns=SNSConfig(
+                x_consumer_key=CONFIG["x_consumer_key"],
+                x_consumer_secret=CONFIG["x_consumer_secret"],
+                x_access_token=CONFIG["x_access_token"],
+                x_access_token_secret=CONFIG["x_access_token_secret"],
+                threads_user_id=CONFIG["threads_user_id"],
+                threads_access_token=CONFIG["threads_access_token"],
+                linkedin_access_token=CONFIG["linkedin_access_token"],
+                instagram_user_id=CONFIG["instagram_user_id"],
+                instagram_access_token=CONFIG["instagram_access_token"],
+                news_x_bearer_token=CONFIG["news_x_bearer_token"],
+            ),
+            discord=DiscordConfig(
+                channels=dict(DISCORD_CHANNELS),
+                tokens=dict(DISCORD_TOKENS),
+            ),
+            usage_limits=UsageLimitsConfig(**CONFIG["usage_limits"]),
+        )

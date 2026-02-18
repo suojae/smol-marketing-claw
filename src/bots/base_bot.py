@@ -1,4 +1,7 @@
-"""Base class for all marketing bots."""
+"""Base class for all marketing bots.
+
+Discord adapter layer — delegates domain logic to src.domain modules.
+"""
 
 import asyncio
 import re
@@ -11,32 +14,21 @@ import discord
 
 from src.bots.alarm_scheduler import AlarmEntry, AlarmScheduler
 from src.config import CONFIG, MODEL_ALIASES, DEFAULT_MODEL
+from src.domain.action_parser import (
+    ACTION_MAP as _ACTION_MAP,
+    ACTION_RE as _ACTION_RE,
+    MAX_ACTIONS_PER_MESSAGE as _MAX_ACTIONS_PER_MESSAGE,
+    escape_mentions,
+    format_schedule,
+    parse_alarm_body,
+    parse_instagram_body,
+    strip_actions,
+)
 from src.executor import AIExecutor
 
 
 def _log(msg: str):
     print(msg, file=sys.stderr)
-
-
-# Action block regex: [ACTION:TYPE] ... [/ACTION]
-_ACTION_RE = re.compile(
-    r"\[ACTION:(\w+)\]\s*(.*?)\s*\[/ACTION\]",
-    re.DOTALL,
-)
-
-# Map ACTION codes → (platform, action_kind)
-_ACTION_MAP: Dict[str, tuple] = {
-    "POST_THREADS": ("threads", "post"),
-    "POST_LINKEDIN": ("linkedin", "post"),
-    "POST_INSTAGRAM": ("instagram", "post"),
-    "POST_X": ("x", "post"),
-    "SEARCH_NEWS": ("news", "search"),
-    "SET_ALARM": ("alarm", "set"),
-    "CANCEL_ALARM": ("alarm", "cancel"),
-}
-
-# Max actions per single LLM response (spam prevention)
-_MAX_ACTIONS_PER_MESSAGE = 2
 
 
 class BaseMarketingBot(discord.Client):
@@ -120,6 +112,32 @@ class BaseMarketingBot(discord.Client):
         """대화 히스토리 전체 초기화."""
         self._channel_history.clear()
         _log(f"[{self.bot_name}] conversation history cleared")
+
+    # -- Public properties for HR / domain access --
+
+    @property
+    def active(self) -> bool:
+        return self._active
+
+    @active.setter
+    def active(self, value: bool):
+        self._active = value
+
+    @property
+    def rehired(self) -> bool:
+        return self._rehired
+
+    @rehired.setter
+    def rehired(self, value: bool):
+        self._rehired = value
+
+    def history_message_count(self) -> int:
+        """Total message count across all channels."""
+        return sum(len(h) for h in self._channel_history.values())
+
+    def cancel_own_tasks(self) -> int:
+        """Cancel all active tasks. Public alias for _cancel_own_tasks."""
+        return self._cancel_own_tasks()
 
     async def on_message(self, message: discord.Message):
         if not self._active:
@@ -350,15 +368,7 @@ class BaseMarketingBot(discord.Client):
     @staticmethod
     def _parse_instagram_body(body: str):
         """Parse Instagram action body to extract caption and image_url."""
-        lines = body.strip().splitlines()
-        image_url = ""
-        caption_lines = []
-        for line in lines:
-            if line.strip().lower().startswith("image_url:"):
-                image_url = line.split(":", 1)[1].strip()
-            else:
-                caption_lines.append(line)
-        return "\n".join(caption_lines).strip(), image_url
+        return parse_instagram_body(body)
 
     async def _execute_action(self, action_type: str, body: str, message: discord.Message = None) -> str:
         """Execute an action block. Respects the approval system for POST actions."""
@@ -639,24 +649,12 @@ class BaseMarketingBot(discord.Client):
     @staticmethod
     def _escape_mentions(text: str) -> str:
         """Escape @mentions to prevent triggering other bots."""
-        return re.sub(r"@(\w+)", r"`@\1`", text)
+        return escape_mentions(text)
 
     @staticmethod
     def _format_schedule(alarm: AlarmEntry) -> str:
         """Format alarm schedule for display."""
-        if alarm.schedule_type == "daily":
-            return f"매일 {alarm.hour:02d}:{alarm.minute:02d}"
-        elif alarm.schedule_type == "weekday":
-            return f"평일 {alarm.hour:02d}:{alarm.minute:02d}"
-        elif alarm.schedule_type == "interval":
-            if alarm.interval_minutes >= 60 and alarm.interval_minutes % 60 == 0:
-                return f"{alarm.interval_minutes // 60}시간마다"
-            return f"{alarm.interval_minutes}분마다"
-        elif alarm.schedule_type == "once":
-            if alarm.interval_minutes >= 60 and alarm.interval_minutes % 60 == 0:
-                return f"{alarm.interval_minutes // 60}시간 후 1회"
-            return f"{alarm.interval_minutes}분 후 1회"
-        return alarm.schedule_type
+        return format_schedule(alarm)
 
     async def _execute_set_alarm(self, body: str, message: discord.Message) -> str:
         """Parse SET_ALARM body and register alarm."""
@@ -703,23 +701,8 @@ class BaseMarketingBot(discord.Client):
 
     @staticmethod
     def _parse_alarm_body(body: str) -> Dict[str, str]:
-        """Parse key: value lines from action body.
-
-        Lines without a colon are appended to the previous key's value,
-        supporting multiline prompt fields.
-        """
-        fields: Dict[str, str] = {}
-        last_key: Optional[str] = None
-        for line in body.strip().splitlines():
-            if ":" in line:
-                key, _, value = line.partition(":")
-                key = key.strip().lower()
-                fields[key] = value.strip()
-                last_key = key
-            elif last_key is not None:
-                # Continuation line — append to previous key
-                fields[last_key] += "\n" + line
-        return fields
+        """Parse key: value lines from action body."""
+        return parse_alarm_body(body)
 
     async def send_to_team(self, text: str):
         """Send a message to the first (primary) team channel."""

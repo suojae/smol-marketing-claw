@@ -1,176 +1,36 @@
 """HR Bot — agent fire/hire/status management.
 
-Core HR functions (resolve_bot, fire_bot, hire_bot, status_report) are
-module-level so that other authorized bots (e.g. TeamLeadBot) can reuse them.
+Core HR functions are in src.domain.hr. This module re-exports them
+for backward compatibility and provides the HRBot Discord adapter.
 """
 
-import sys
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Dict
 
 from src.bots.base_bot import BaseMarketingBot
 from src.bots.personas import HR_PERSONA
-from src.executor import AIExecutor
+from src.domain.hr import (
+    BOT_NAME_ALIASES,
+    HISTORY_FIRE_THRESHOLD,
+    HISTORY_WARN_THRESHOLD,
+    PROTECTED_KEYS,
+    fire_bot,
+    hire_bot,
+    resolve_bot,
+    status_report,
+)
 
-
-def _log(msg: str):
-    print(msg, file=sys.stderr)
-
-
-# Normalize various bot name inputs to registry keys
-BOT_NAME_ALIASES: Dict[str, str] = {
-    "threads": "threads",
-    "threadsbot": "threads",
-    "stitch": "threads",
-    "linkedin": "linkedin",
-    "linkedinbot": "linkedin",
-    "summit": "linkedin",
-    "instagram": "instagram",
-    "instagrambot": "instagram",
-    "pixel": "instagram",
-    "news": "news",
-    "newsbot": "news",
-    "radar": "news",
-    "researcher": "news",
-    "researcherbot": "news",
-    "teamlead": "lead",
-    "captain": "lead",
-    "lead": "lead",
-    "teamleadbot": "lead",
-    "hr": "hr",
-    "hrbot": "hr",
-}
-
-# Protected bots that cannot be fired
-PROTECTED_KEYS = frozenset({"lead", "hr"})
-
-
-# ── Module-level HR functions ──────────────────────────────────────
-
-
-def resolve_bot(
-    name: str, registry: Dict[str, BaseMarketingBot], caller: str = "HR",
-) -> Tuple[Optional[str], Union[BaseMarketingBot, str]]:
-    """Resolve a bot name to (registry_key, bot_instance) or (None, error_msg)."""
-    key = BOT_NAME_ALIASES.get(name.lower().strip())
-    if not key:
-        available = ", ".join(sorted({v for v in BOT_NAME_ALIASES.values() if v in registry}))
-        return None, f"[{caller}] 알 수 없는 봇: {name!r}. 가능한 봇: {available}"
-    bot = registry.get(key)
-    if not bot:
-        return None, f"[{caller}] '{key}' 봇이 레지스트리에 등록되지 않았음."
-    return key, bot
-
-
-async def fire_bot(
-    name: str, registry: Dict[str, BaseMarketingBot], caller: str = "HR",
-) -> str:
-    """Deactivate a bot and clear its history."""
-    key, bot_or_msg = resolve_bot(name, registry, caller)
-    if key is None:
-        return bot_or_msg
-
-    if key in PROTECTED_KEYS:
-        label = "Captain(TeamLead)" if key == "lead" else "HR"
-        return f"[{caller}] {label}은(는) 보호 대상이므로 해고 불가함."
-
-    if not bot_or_msg._active:
-        return f"[{caller}] {bot_or_msg.bot_name}은(는) 이미 비활성 상태임. 추가 조치 불요함."
-
-    # Cancel any active tasks before deactivating
-    for ch_id, task in list(bot_or_msg._active_tasks.items()):
-        if not task.done():
-            task.cancel()
-    bot_or_msg._active = False
-    bot_or_msg.clear_history()
-    _log(f"[{caller}] FIRED: {bot_or_msg.bot_name} (key={key})")
-    return f"[{caller}] {bot_or_msg.bot_name} 해고 처리 완료됨. 컨텍스트 초기화, 진행 중 작업 취소됨."
-
-
-async def hire_bot(
-    name: str, registry: Dict[str, BaseMarketingBot], caller: str = "HR",
-) -> str:
-    """Reactivate a previously fired bot.
-
-    The return message includes @BotName mention so the rehired bot
-    receives a notification in the team channel and can onboard.
-    """
-    key, bot_or_msg = resolve_bot(name, registry, caller)
-    if key is None:
-        return bot_or_msg
-
-    if bot_or_msg._active:
-        return f"[{caller}] {bot_or_msg.bot_name}은(는) 이미 활성 상태임. 추가 조치 불요함."
-
-    bot_or_msg._active = True
-    bot_or_msg._rehired = True
-    _log(f"[{caller}] HIRED: {bot_or_msg.bot_name} (key={key})")
-    return (
-        f"[{caller}] {bot_or_msg.bot_name} 채용(재활성화) 완료됨.\n"
-        f"@{bot_or_msg.bot_name} 새로 채용됨. 이전 기억 없는 상태임. "
-        f"팀에 자기소개하고 현재 진행 중인 업무 브리핑 요청해."
-    )
-
-
-# History thresholds for proactive management
-HISTORY_WARN_THRESHOLD = 10   # recommend reset
-HISTORY_FIRE_THRESHOLD = 15   # strongly recommend immediate reset
-
-
-# History thresholds for proactive management
-HISTORY_WARN_THRESHOLD = 10   # recommend reset
-HISTORY_FIRE_THRESHOLD = 15   # strongly recommend immediate reset
-
-
-def status_report(
-    registry: Dict[str, BaseMarketingBot], caller: str = "HR",
-) -> str:
-    """Generate a status report for all registered bots."""
-    if not registry:
-        return f"[{caller}] 등록된 봇 없음."
-
-    lines = [f"[{caller}] === 에이전트 현황 리포트 ==="]
-    active_count = 0
-    inactive_count = 0
-    warn_bots = []
-
-    for key in sorted(registry.keys()):
-        bot = registry[key]
-        status = "활성" if bot._active else "비활성"
-        protected = " (보호)" if key in PROTECTED_KEYS else ""
-        msg_count = sum(len(h) for h in bot._channel_history.values())
-
-        if bot._active:
-            active_count += 1
-        else:
-            inactive_count += 1
-
-        # Tag bots exceeding thresholds
-        tag = ""
-        if bot._active and key not in PROTECTED_KEYS:
-            if msg_count >= HISTORY_FIRE_THRESHOLD:
-                tag = " ⚠ 즉시 리셋 권고"
-                warn_bots.append((bot.bot_name, msg_count, "critical"))
-            elif msg_count >= HISTORY_WARN_THRESHOLD:
-                tag = " △ 주의"
-                warn_bots.append((bot.bot_name, msg_count, "warn"))
-
-        lines.append(
-            f"- {bot.bot_name} [{key}]: {status}{protected} | 히스토리: {msg_count}건{tag}"
-        )
-
-    lines.append(f"합계: 활성 {active_count}명, 비활성 {inactive_count}명")
-
-    if warn_bots:
-        lines.append("")
-        for name, count, level in warn_bots:
-            if level == "critical":
-                lines.append(f"→ {name}: {count}건 — 성능 저하 구간. 해고→재채용 실행 요망.")
-            else:
-                lines.append(f"→ {name}: {count}건 — 리셋 권고 대상.")
-    return "\n".join(lines)
-
-
-# ── HRBot class ────────────────────────────────────────────────────
+# Re-export domain functions for backward compatibility
+__all__ = [
+    "BOT_NAME_ALIASES",
+    "PROTECTED_KEYS",
+    "HISTORY_WARN_THRESHOLD",
+    "HISTORY_FIRE_THRESHOLD",
+    "resolve_bot",
+    "fire_bot",
+    "hire_bot",
+    "status_report",
+    "HRBot",
+]
 
 
 class HRBot(BaseMarketingBot):
