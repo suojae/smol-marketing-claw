@@ -1,7 +1,7 @@
 """LLM adapters — Claude and Codex CLI executors."""
 
-from src.adapters.llm.claude_adapter import ClaudeAdapter
-from src.adapters.llm.codex_adapter import CodexAdapter
+from src.adapters.llm.claude import ClaudeAdapter
+from src.adapters.llm.codex import CodexAdapter
 from src.adapters.llm.executor import (
     AIExecutor,
     ClaudeExecutor,

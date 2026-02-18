@@ -30,31 +30,31 @@ class TestSNSPortConformance:
     """Verify that SNS clients have the expected interface."""
 
     def test_x_client_has_interface(self):
-        from src.adapters.sns.x_client import XClient
+        from src.adapters.sns.x import XClient
         client = XClient()
         assert hasattr(client, "is_configured")
         assert hasattr(client, "post")
 
     def test_threads_client_has_interface(self):
-        from src.adapters.sns.threads_client import ThreadsClient
+        from src.adapters.sns.threads import ThreadsClient
         client = ThreadsClient()
         assert hasattr(client, "is_configured")
         assert hasattr(client, "post")
 
     def test_linkedin_client_has_interface(self):
-        from src.adapters.sns.linkedin_client import LinkedInClient
+        from src.adapters.sns.linkedin import LinkedInClient
         client = LinkedInClient()
         assert hasattr(client, "is_configured")
         assert hasattr(client, "post")
 
     def test_instagram_client_has_interface(self):
-        from src.adapters.sns.instagram_client import InstagramClient
+        from src.adapters.sns.instagram import InstagramClient
         client = InstagramClient()
         assert hasattr(client, "is_configured")
         assert hasattr(client, "post")
 
     def test_news_client_has_interface(self):
-        from src.adapters.sns.news_client import NewsClient
+        from src.adapters.sns.news import NewsClient
         client = NewsClient()
         assert hasattr(client, "is_configured")
         assert hasattr(client, "search")
@@ -80,21 +80,21 @@ class TestAdapterReexports:
     """Verify adapter SNS modules expose correct classes."""
 
     def test_x_client(self):
-        from src.adapters.sns.x_client import XClient
+        from src.adapters.sns.x import XClient
         assert XClient is not None
 
     def test_threads_client(self):
-        from src.adapters.sns.threads_client import ThreadsClient
+        from src.adapters.sns.threads import ThreadsClient
         assert ThreadsClient is not None
 
     def test_linkedin_client(self):
-        from src.adapters.sns.linkedin_client import LinkedInClient
+        from src.adapters.sns.linkedin import LinkedInClient
         assert LinkedInClient is not None
 
     def test_instagram_client(self):
-        from src.adapters.sns.instagram_client import InstagramClient
+        from src.adapters.sns.instagram import InstagramClient
         assert InstagramClient is not None
 
     def test_news_client(self):
-        from src.adapters.sns.news_client import NewsClient
+        from src.adapters.sns.news import NewsClient
         assert NewsClient is not None

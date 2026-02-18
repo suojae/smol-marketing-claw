@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Autonomous AI Server — entry point."""
 
-from src.adapters.web.app import app
+from src.adapters.web.server import app
 from src.config import CONFIG
 import uvicorn
 

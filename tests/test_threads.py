@@ -4,12 +4,12 @@ import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 from aiohttp import ClientSession
 
-from src.adapters.sns.threads_client import ThreadsClient, ThreadsPostResult, THREADS_API_BASE
+from src.adapters.sns.threads import ThreadsClient, ThreadsPostResult, THREADS_API_BASE
 
 
 @pytest.fixture
 def threads_configured(monkeypatch):
-    monkeypatch.setattr("src.adapters.sns.threads_client.CONFIG", {
+    monkeypatch.setattr("src.adapters.sns.threads.CONFIG", {
         "threads_user_id": "user123",
         "threads_access_token": "tok456",
     })
@@ -17,7 +17,7 @@ def threads_configured(monkeypatch):
 
 @pytest.fixture
 def threads_unconfigured(monkeypatch):
-    monkeypatch.setattr("src.adapters.sns.threads_client.CONFIG", {
+    monkeypatch.setattr("src.adapters.sns.threads.CONFIG", {
         "threads_user_id": "",
         "threads_access_token": "",
     })
@@ -33,7 +33,7 @@ class TestIsConfigured:
         assert client.is_configured is False
 
     def test_partial(self, monkeypatch):
-        monkeypatch.setattr("src.adapters.sns.threads_client.CONFIG", {
+        monkeypatch.setattr("src.adapters.sns.threads.CONFIG", {
             "threads_user_id": "user123",
             "threads_access_token": "",
         })
@@ -105,7 +105,7 @@ class TestPost:
             {"id": "post_1"},       # publish
         ])
         client = ThreadsClient()
-        with patch("src.adapters.sns.threads_client.aiohttp.ClientSession", mock_session):
+        with patch("src.adapters.sns.threads.aiohttp.ClientSession", mock_session):
             result = await client.post("Hello Threads")
         assert result.success is True
         assert result.post_id == "post_1"
@@ -117,7 +117,7 @@ class TestPost:
             {"error": {"message": "Invalid token"}},
         ])
         client = ThreadsClient()
-        with patch("src.adapters.sns.threads_client.aiohttp.ClientSession", mock_session):
+        with patch("src.adapters.sns.threads.aiohttp.ClientSession", mock_session):
             result = await client.post("Hello")
         assert result.success is False
         assert "Invalid token" in result.error
@@ -129,7 +129,7 @@ class TestPost:
             {"error": {"message": "Publish failed"}},
         ])
         client = ThreadsClient()
-        with patch("src.adapters.sns.threads_client.aiohttp.ClientSession", mock_session):
+        with patch("src.adapters.sns.threads.aiohttp.ClientSession", mock_session):
             result = await client.post("Hello")
         assert result.success is False
         assert "Publish failed" in result.error
@@ -141,7 +141,7 @@ class TestPost:
             {"id": "p1"},
         ])
         client = ThreadsClient()
-        with patch("src.adapters.sns.threads_client.aiohttp.ClientSession", mock_session):
+        with patch("src.adapters.sns.threads.aiohttp.ClientSession", mock_session):
             result = await client.post("x" * 600)
         assert result.success is True
         assert len(result.text) == 500
@@ -155,7 +155,7 @@ class TestReply:
             {"id": "reply_1"},
         ])
         client = ThreadsClient()
-        with patch("src.adapters.sns.threads_client.aiohttp.ClientSession", mock_session):
+        with patch("src.adapters.sns.threads.aiohttp.ClientSession", mock_session):
             result = await client.reply("Reply text", "post_1")
         assert result.success is True
         assert result.post_id == "reply_1"
@@ -166,7 +166,7 @@ class TestReply:
             {"error": {"message": "Not found"}},
         ])
         client = ThreadsClient()
-        with patch("src.adapters.sns.threads_client.aiohttp.ClientSession", mock_session):
+        with patch("src.adapters.sns.threads.aiohttp.ClientSession", mock_session):
             result = await client.reply("Reply", "bad_id")
         assert result.success is False
         assert "Not found" in result.error

@@ -4,9 +4,9 @@ import pytest
 from unittest.mock import patch, AsyncMock
 from httpx import AsyncClient, ASGITransport
 
-from src.adapters.web.app import app
-from src.adapters.sns.x_client import XPostResult
-from src.adapters.sns.threads_client import ThreadsPostResult
+from src.adapters.web.server import app
+from src.adapters.sns.x import XPostResult
+from src.adapters.sns.threads import ThreadsPostResult
 
 
 @pytest.fixture

@@ -10,8 +10,8 @@ from src.config import CONFIG
 from src.infrastructure.usage import UsageTracker
 from src.infrastructure.memory import GuardrailMemory
 from src.infrastructure.context import ContextCollector
-from src.adapters.sns.x_client import XClient
-from src.adapters.sns.threads_client import ThreadsClient
+from src.adapters.sns.x import XClient
+from src.adapters.sns.threads import ThreadsClient
 
 # Resolve memory directory relative to plugin root
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
@@ -55,21 +55,21 @@ class AppState:
             self.threads_client = None
 
         try:
-            from src.adapters.sns.linkedin_client import LinkedInClient
+            from src.adapters.sns.linkedin import LinkedInClient
             self.linkedin_client = LinkedInClient()
         except Exception as e:
             _log(f"LinkedInClient init failed: {e}")
             self.linkedin_client = None
 
         try:
-            from src.adapters.sns.instagram_client import InstagramClient
+            from src.adapters.sns.instagram import InstagramClient
             self.instagram_client = InstagramClient()
         except Exception as e:
             _log(f"InstagramClient init failed: {e}")
             self.instagram_client = None
 
         try:
-            from src.adapters.sns.news_client import NewsClient
+            from src.adapters.sns.news import NewsClient
             self.news_client = NewsClient()
         except Exception as e:
             _log(f"NewsClient init failed: {e}")

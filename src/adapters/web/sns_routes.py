@@ -4,10 +4,10 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
-from src.adapters.sns.x_client import XClient
-from src.adapters.sns.threads_client import ThreadsClient
+from src.adapters.sns.x import XClient
+from src.adapters.sns.threads import ThreadsClient
 from src.config import CONFIG
-from src.adapters.web.approval import enqueue_post, approve_and_execute, reject, list_pending
+from src.adapters.web.approval_queue import enqueue_post, approve_and_execute, reject, list_pending
 
 sns_router = APIRouter(prefix="/sns", tags=["SNS"])
 

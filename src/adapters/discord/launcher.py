@@ -48,7 +48,7 @@ def _create_sns_clients():
     clients = {}
 
     try:
-        from src.adapters.sns.threads_client import ThreadsClient
+        from src.adapters.sns.threads import ThreadsClient
         c = ThreadsClient()
         if c.is_configured:
             clients["threads"] = c
@@ -59,7 +59,7 @@ def _create_sns_clients():
         _log(f"ThreadsClient unavailable: {e}")
 
     try:
-        from src.adapters.sns.linkedin_client import LinkedInClient
+        from src.adapters.sns.linkedin import LinkedInClient
         c = LinkedInClient()
         if c.is_configured:
             clients["linkedin"] = c
@@ -70,7 +70,7 @@ def _create_sns_clients():
         _log(f"LinkedInClient unavailable: {e}")
 
     try:
-        from src.adapters.sns.instagram_client import InstagramClient
+        from src.adapters.sns.instagram import InstagramClient
         c = InstagramClient()
         if c.is_configured:
             clients["instagram"] = c
@@ -81,7 +81,7 @@ def _create_sns_clients():
         _log(f"InstagramClient unavailable: {e}")
 
     try:
-        from src.adapters.sns.news_client import NewsClient
+        from src.adapters.sns.news import NewsClient
         c = NewsClient()
         if c.is_configured:
             clients["news"] = c
@@ -92,7 +92,7 @@ def _create_sns_clients():
         _log(f"NewsClient unavailable: {e}")
 
     try:
-        from src.adapters.sns.x_client import XClient
+        from src.adapters.sns.x import XClient
         c = XClient()
         if c.is_configured:
             clients["x"] = c

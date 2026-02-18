@@ -9,7 +9,7 @@ from typing import Callable, Awaitable
 from server.mcp_server import mcp
 from server.state import get_state
 from src.config import CONFIG
-from src.adapters.web.approval import enqueue_post
+from src.adapters.web.approval_queue import enqueue_post
 
 
 async def _execute_sns_action(
