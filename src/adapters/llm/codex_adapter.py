@@ -7,8 +7,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from src.executor import run_cancellable
-from src.usage import UsageTracker
+from src.adapters.llm.executor import run_cancellable
+from src.infrastructure.usage import UsageTracker
 
 
 class CodexAdapter:

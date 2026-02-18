@@ -1,17 +1,6 @@
-"""Instagram bot — Instagram platform content creation and posting."""
+"""Backward-compatibility shim — instagram_bot now lives in src.adapters.discord.instagram_bot."""
+import importlib as _importlib
+import sys as _sys
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import INSTAGRAM_PERSONA
-
-
-class InstagramBot(BaseMarketingBot):
-    """Instagram platform specialist bot.
-
-    Responsibilities:
-    - Instagram content planning and posting
-    - Visual content strategy (images required)
-    - Reels, Stories, Feed post planning
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(bot_name="InstagramBot", persona=INSTAGRAM_PERSONA, **kwargs)
+_real = _importlib.import_module("src.adapters.discord.instagram_bot")
+_sys.modules[__name__] = _real

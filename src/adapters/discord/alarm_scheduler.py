@@ -1,4 +1,5 @@
-"""Backward-compatibility shim — alarm_scheduler re-exports from src.domain.alarm."""
+"""Backward-compatibility shim — AlarmScheduler now lives in src.domain.alarm."""
+
 from src.domain.alarm import (  # noqa: F401
     AlarmEntry,
     AlarmScheduler,

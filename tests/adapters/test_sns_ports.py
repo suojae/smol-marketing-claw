@@ -77,29 +77,29 @@ class TestLLMPortConformance:
 
 
 class TestAdapterReexports:
-    """Verify adapter modules correctly re-export original clients."""
+    """Verify adapter SNS modules are accessible from both old and new paths."""
 
-    def test_x_adapter(self):
-        from src.adapters.sns.x_adapter import XClient as AdapterXClient
+    def test_x_client(self):
+        from src.adapters.sns.x_client import XClient as AdapterXClient
         from src.x_client import XClient
         assert AdapterXClient is XClient
 
-    def test_threads_adapter(self):
-        from src.adapters.sns.threads_adapter import ThreadsClient as AdapterClient
+    def test_threads_client(self):
+        from src.adapters.sns.threads_client import ThreadsClient as AdapterClient
         from src.threads_client import ThreadsClient
         assert AdapterClient is ThreadsClient
 
-    def test_linkedin_adapter(self):
-        from src.adapters.sns.linkedin_adapter import LinkedInClient as AdapterClient
+    def test_linkedin_client(self):
+        from src.adapters.sns.linkedin_client import LinkedInClient as AdapterClient
         from src.linkedin_client import LinkedInClient
         assert AdapterClient is LinkedInClient
 
-    def test_instagram_adapter(self):
-        from src.adapters.sns.instagram_adapter import InstagramClient as AdapterClient
+    def test_instagram_client(self):
+        from src.adapters.sns.instagram_client import InstagramClient as AdapterClient
         from src.instagram_client import InstagramClient
         assert AdapterClient is InstagramClient
 
-    def test_news_adapter(self):
-        from src.adapters.sns.news_adapter import NewsClient as AdapterClient
+    def test_news_client(self):
+        from src.adapters.sns.news_client import NewsClient as AdapterClient
         from src.news_client import NewsClient
         assert AdapterClient is NewsClient

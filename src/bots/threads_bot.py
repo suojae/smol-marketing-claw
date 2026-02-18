@@ -1,17 +1,6 @@
-"""Threads bot — Threads platform content creation and posting."""
+"""Backward-compatibility shim — threads_bot now lives in src.adapters.discord.threads_bot."""
+import importlib as _importlib
+import sys as _sys
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import THREADS_PERSONA
-
-
-class ThreadsBot(BaseMarketingBot):
-    """Threads platform specialist bot.
-
-    Responsibilities:
-    - Threads content planning and posting
-    - Trend analysis, hashtag strategy
-    - Short, impactful text content
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(bot_name="ThreadsBot", persona=THREADS_PERSONA, **kwargs)
+_real = _importlib.import_module("src.adapters.discord.threads_bot")
+_sys.modules[__name__] = _real

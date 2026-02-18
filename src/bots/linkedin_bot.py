@@ -1,17 +1,6 @@
-"""LinkedIn bot — LinkedIn platform content creation and posting."""
+"""Backward-compatibility shim — linkedin_bot now lives in src.adapters.discord.linkedin_bot."""
+import importlib as _importlib
+import sys as _sys
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import LINKEDIN_PERSONA
-
-
-class LinkedInBot(BaseMarketingBot):
-    """LinkedIn platform specialist bot.
-
-    Responsibilities:
-    - LinkedIn content planning and posting
-    - B2B marketing, thought leadership
-    - Industry insights and professional networking content
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(bot_name="LinkedInBot", persona=LINKEDIN_PERSONA, **kwargs)
+_real = _importlib.import_module("src.adapters.discord.linkedin_bot")
+_sys.modules[__name__] = _real

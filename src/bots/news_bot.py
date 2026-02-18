@@ -1,23 +1,6 @@
-"""Researcher bot — market research, trend monitoring, competitor analysis."""
+"""Backward-compatibility shim — news_bot now lives in src.adapters.discord.news_bot."""
+import importlib as _importlib
+import sys as _sys
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import NEWS_PERSONA
-
-
-class ResearcherBot(BaseMarketingBot):
-    """Market research and news monitoring bot.
-
-    Responsibilities:
-    - Industry trends and competitor analysis
-    - Real-time news monitoring via X search
-    - Insight reports for the team
-    - Market trend briefings for team lead
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(
-            bot_name="ResearcherBot",
-            persona=NEWS_PERSONA,
-            aliases=["NewsBot"],
-            **kwargs,
-        )
+_real = _importlib.import_module("src.adapters.discord.news_bot")
+_sys.modules[__name__] = _real
