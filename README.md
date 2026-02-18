@@ -1,52 +1,68 @@
-# 🦞 Smol Marketing Claw 🦞
+# Smol Marketing Claw
 
 <div align="center">
   <img src=".github/crayfish.svg" alt="Cute Crayfish" width="400"/>
 
-  ### *Your tiny, cute AI marketing assistant* 🦞
+  ### *Your tiny, cute AI marketing assistant*
 
-  **An AI-powered SNS marketing plugin that posts, replies, and notifies for you.**
+  **A multi-agent Discord system that coordinates SNS marketing across 5 platforms.**
 
-  *Just like having a helpful little crayfish managing your social media!* 🦞
+  5 AI bots collaborate in a Discord server to plan, create, and publish marketing content.
 </div>
 
 ---
 
 [한국어 문서](./README.ko.md)
 
+## Architecture
+
+```
+Discord Server
+├── #team-room       ← All bots collaborate here via @mentions
+├── #captain-room    ← Captain (Team Lead) 1:1 channel
+├── #stitch-room     ← Stitch (Threads) 1:1 channel
+├── #summit-room     ← Summit (LinkedIn) 1:1 channel
+├── #pixel-room      ← Pixel (Instagram) 1:1 channel
+└── #radar-room      ← Radar (News/Research) 1:1 channel
+```
+
+### The 5 Bots
+
+| Bot | Role | SNS Platform | Action Code |
+|-----|------|-------------|-------------|
+| **Captain** (Team Lead) | Strategy, coordination, task delegation | X (Twitter) | `POST_X` |
+| **Stitch** (Threads) | Short-form text content | Threads (Meta) | `POST_THREADS` |
+| **Summit** (LinkedIn) | B2B / professional content | LinkedIn | `POST_LINKEDIN` |
+| **Pixel** (Instagram) | Visual content (image required) | Instagram | `POST_INSTAGRAM` |
+| **Radar** (News) | Market research, trend monitoring | X Search API | `SEARCH_NEWS` |
+
+### How It Works
+
+1. User or Captain gives a task in `#team-room` via @mention
+2. The assigned bot generates content using AI (Claude / Codex)
+3. Bot's response includes an `[ACTION:...]` block for SNS execution
+4. Action engine parses the block and routes to the approval system
+5. If `require_manual_approval=true`, the post queues for human review
+6. Approved posts are published to the target platform
+
 ## Features
 
-- **X (Twitter) Integration** - Post tweets & reply to conversations
-- **Threads (Meta) Integration** - Publish posts & reply on Threads
-- **Discord Notifications** - Real-time marketing alerts via Discord
-- **Smart Memory** 🧠 - Remembers past actions and avoids duplicate posts
-- **Secrets Protection** 🔒 - Prevents leaking API keys, tokens, and credentials
-- **Safe by Default** - Pre-commit hooks and CI checks for sensitive data
-- **Claude AI Powered** - Intelligent content decisions via Anthropic Claude
-- **Zero Dependencies** - Simple JSON-based memory (no external DBs needed)
+- **5-Bot Multi-Agent System** - Specialized bots collaborate via Discord @mentions
+- **5 SNS Platforms** - X, Threads, LinkedIn, Instagram, News search
+- **Action Engine** - LLM responses contain `[ACTION:TYPE]...[/ACTION]` blocks, parsed and executed automatically
+- **Manual Approval** - Posts queue for human review before publishing (configurable)
+- **MCP Server** - Streamable HTTP server for tool integration (Codex CLI compatible)
+- **Smart Memory** - Remembers past actions and avoids duplicate posts
+- **Secrets Protection** - Pre-commit hooks and CI checks for sensitive data
+- **Graceful Degradation** - Bots start even if some SNS credentials are missing
 
 ## Quick Start
 
-### 1. Environment Setup
+### 1. Prerequisites
 
-Create a `.env` file in the project root:
-
-```bash
-# X (Twitter) API Keys — required for X integration
-X_CONSUMER_KEY=your_consumer_key
-X_CONSUMER_SECRET=your_consumer_secret
-X_ACCESS_TOKEN=your_access_token
-X_ACCESS_TOKEN_SECRET=your_access_token_secret
-
-# Threads (Meta) API — required for Threads integration
-THREADS_USER_ID=your_threads_user_id
-THREADS_ACCESS_TOKEN=your_threads_access_token
-
-# Discord (optional — for notifications)
-DISCORD_BOT_TOKEN=your_bot_token
-DISCORD_CHANNEL_ID=your_channel_id
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
-```
+- Python 3.10+ (3.13 recommended)
+- 5 Discord bot applications (one per bot)
+- SNS API credentials for desired platforms
 
 ### 2. Install
 
@@ -56,235 +72,196 @@ cd smol-claw
 pip install -r requirements.txt
 ```
 
-### 3. Run
+### 3. Environment Setup
+
+Create a `.env` file in the project root:
 
 ```bash
-python autonomous-ai-server.py
+# ── Discord Bot Tokens (one per bot) ──
+DISCORD_LEAD_TOKEN=your_captain_bot_token
+DISCORD_THREADS_TOKEN=your_stitch_bot_token
+DISCORD_LINKEDIN_TOKEN=your_summit_bot_token
+DISCORD_INSTAGRAM_TOKEN=your_pixel_bot_token
+DISCORD_NEWS_TOKEN=your_radar_bot_token
+
+# ── Discord Channel IDs ──
+DISCORD_TEAM_CHANNEL_ID=123456789012345678    # #team-room
+DISCORD_LEAD_CHANNEL_ID=123456789012345679    # #captain-room
+DISCORD_THREADS_CHANNEL_ID=123456789012345680 # #stitch-room
+DISCORD_LINKEDIN_CHANNEL_ID=123456789012345681 # #summit-room
+DISCORD_INSTAGRAM_CHANNEL_ID=123456789012345682 # #pixel-room
+DISCORD_NEWS_CHANNEL_ID=123456789012345683    # #radar-room
+
+# ── X (Twitter) API Keys ──
+X_CONSUMER_KEY=your_consumer_key
+X_CONSUMER_SECRET=your_consumer_secret
+X_ACCESS_TOKEN=your_access_token
+X_ACCESS_TOKEN_SECRET=your_access_token_secret
+
+# ── Threads (Meta) API ──
+THREADS_USER_ID=your_threads_user_id
+THREADS_ACCESS_TOKEN=your_threads_access_token
+
+# ── LinkedIn API ──
+LINKEDIN_ACCESS_TOKEN=your_linkedin_access_token
+
+# ── Instagram (Meta Graph API) ──
+INSTAGRAM_USER_ID=your_instagram_user_id
+INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token
+
+# ── News (X Search API) ──
+NEWS_X_BEARER_TOKEN=your_x_bearer_token
+
+# ── AI Provider ──
+AI_PROVIDER=claude                  # claude or codex
+AI_DEFAULT_MODEL=sonnet             # opus, sonnet, or haiku
+
+# ── Approval ──
+REQUIRE_MANUAL_APPROVAL=true        # Set to false to auto-publish (not recommended)
 ```
 
-### 4. Check
-
-- Web: http://localhost:3000
-- API: `curl http://localhost:3000/status`
-
-## Usage Examples
-
-### Post a Tweet
+### 4. Run the Bots
 
 ```bash
-curl -X POST http://localhost:3000/sns/x/post \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Hello from Smol Marketing Claw! 🦞"}'
+python -m src.bots.launcher
 ```
 
-### Reply to a Tweet
+Bots that have valid tokens will start; missing tokens are skipped with a log message.
+
+### 5. Run the MCP Server (optional)
 
 ```bash
-curl -X POST http://localhost:3000/sns/x/reply \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Thanks for the feedback!", "post_id": "1234567890"}'
+cd smol-marketing-claw
+python server/mcp_server.py
+# Streamable HTTP server at http://127.0.0.1:8000
 ```
 
-### Post to Threads
+## Discord Server Setup
 
-```bash
-curl -X POST http://localhost:3000/sns/threads/post \
-  -H "Content-Type: application/json" \
-  -d '{"text": "New product launch coming soon! 🦞"}'
+### Creating Bot Applications
+
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Create **5 applications** (Captain, Stitch, Summit, Pixel, Radar)
+3. For each application:
+   - Go to **Bot** tab > click **Reset Token** > copy and save the token
+   - Enable **Message Content Intent** under Privileged Gateway Intents
+   - Go to **OAuth2 > URL Generator**
+   - Check `bot` scope
+   - Check permissions: `Send Messages`, `Read Message History`, `View Channels`
+   - Open the generated URL to invite the bot to your server
+
+### Channel Structure
+
+Create 6 text channels in your Discord server:
+
+| Channel | Purpose |
+|---------|---------|
+| `#team-room` | All bots join. Collaboration via @mentions |
+| `#captain-room` | 1:1 with Captain (Team Lead). User gives strategy directives |
+| `#stitch-room` | 1:1 with Stitch. Threads content requests |
+| `#summit-room` | 1:1 with Summit. LinkedIn content requests |
+| `#pixel-room` | 1:1 with Pixel. Instagram content requests |
+| `#radar-room` | 1:1 with Radar. News/trend research requests |
+
+Right-click each channel > **Copy Channel ID** (requires Developer Mode) and add to `.env`.
+
+## Action Engine
+
+Bots communicate SNS actions via `[ACTION:TYPE]...[/ACTION]` blocks in their LLM responses.
+
+### Action Format
+
+```
+[ACTION:POST_THREADS]
+AI marketing is evolving fast. Here's what you need to know...
+[/ACTION]
 ```
 
-### Reply on Threads
-
-```bash
-curl -X POST http://localhost:3000/sns/threads/reply \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Great question — check our link in bio!", "post_id": "9876543210"}'
+Instagram requires an `image_url:` field:
+```
+[ACTION:POST_INSTAGRAM]
+Visual storytelling at its finest
+image_url: https://example.com/image.jpg
+[/ACTION]
 ```
 
-### Check Server Status
-
-```bash
-curl http://localhost:3000/status
+News search:
+```
+[ACTION:SEARCH_NEWS]
+AI marketing trends
+[/ACTION]
 ```
 
-### Ask Claude a Question
+### Security
 
-```bash
-curl -X POST http://localhost:3000/ask \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Draft a tweet about our new feature"}'
-```
+- Action blocks in user messages are stripped (injection defense)
+- Actions only execute in `#team-room` (not in 1:1 channels)
+- Max 2 actions per message
+- Empty action bodies are rejected
+- Instagram `image_url` must be HTTPS
+- News queries are sanitized (whitelist-based)
+- All POST actions are audit-logged
 
-## Marketing Scenarios
+## Approval System
 
-### Scenario 1: Product Launch Tweet
+When `REQUIRE_MANUAL_APPROVAL=true` (default), POST actions queue for human review instead of publishing immediately.
 
-```bash
-# Post announcement on X
-curl -X POST http://localhost:3000/sns/x/post \
-  -d '{"text": "We just launched our new dashboard! Check it out at example.com 🚀"}' \
-  -H "Content-Type: application/json"
+Use the MCP server tools to manage the queue:
+- `list_pending_posts` - View pending posts
+- `approve_post` - Approve and publish a queued post
+- `reject_post` - Reject a queued post
 
-# Cross-post to Threads
-curl -X POST http://localhost:3000/sns/threads/post \
-  -d '{"text": "We just launched our new dashboard! Check it out at example.com 🚀"}' \
-  -H "Content-Type: application/json"
-```
+## MCP Server
 
-### Scenario 2: Community Engagement
+The MCP server at `smol-marketing-claw/server/mcp_server.py` exposes 13 tools via Streamable HTTP:
 
-```bash
-# Reply to customer feedback on X
-curl -X POST http://localhost:3000/sns/x/reply \
-  -d '{"text": "Thank you for the kind words! We appreciate your support 🦞", "post_id": "1234567890"}' \
-  -H "Content-Type: application/json"
-```
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | Web dashboard |
-| GET | `/status` | Server status & usage info |
-| POST | `/ask` | Ask Claude a question |
-| POST | `/sns/x/post` | Post a tweet to X (Twitter) |
-| POST | `/sns/x/reply` | Reply to a tweet on X |
-| POST | `/sns/threads/post` | Post to Threads (Meta) |
-| POST | `/sns/threads/reply` | Reply to a post on Threads |
-
-### SNS Request/Response Format
-
-**Post Request Body:**
-```json
-{ "text": "Your post content here" }
-```
-
-**Reply Request Body:**
-```json
-{ "text": "Your reply content", "post_id": "target_post_id" }
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "post_id": "1234567890",
-  "text": "Your post content here"
-}
-```
-
-**Text Limits:**
-- X (Twitter): 280 characters (auto-truncated)
-- Threads (Meta): 500 characters (auto-truncated)
+| Tool | Description |
+|------|-------------|
+| `post_x` | Post a tweet to X |
+| `post_threads` | Post to Threads |
+| `post_linkedin` | Post to LinkedIn |
+| `post_instagram` | Post to Instagram (image required) |
+| `search_news` | Search recent tweets by keyword |
+| `list_pending_posts` | List posts awaiting approval |
+| `approve_post` | Approve a pending post |
+| `reject_post` | Reject a pending post |
+| `ask` | Ask the AI a question |
+| `get_status` | Server status and usage info |
+| `get_memory` | View memory contents |
+| `set_model` | Change AI model |
+| `get_config` | View current configuration |
 
 ## Configuration
 
-Edit environment variables or the `CONFIG` object in `src/config.py`:
+Key settings in `src/config.py`:
 
-```python
-CONFIG = {
-    "port": 3000,                    # Port number
-    "check_interval": 30 * 60,       # 30 minutes (in seconds)
-    "autonomous_mode": True          # Autonomous mode on/off
-}
-```
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `ai_provider` | `claude` | AI backend (`claude` or `codex`) |
+| `require_manual_approval` | `true` | Queue posts for human review |
+| `usage_limits.max_calls_per_day` | `10000` | Daily API call limit |
+| `autonomous_mode` | `true` | Enable autonomous operation |
 
-## Secrets Protection 🛡️
+## Secrets Protection
 
-Smol Marketing Claw protects you from accidentally leaking sensitive marketing API credentials!
+Pre-commit hooks and CI checks prevent accidental credential leaks.
 
-### What's Protected
-
-Automatically detects and blocks:
-- 🔑 API keys (X Consumer Key, Threads Access Token, etc.)
-- 🔐 Passwords and auth tokens
-- 🔒 Private keys and certificates
-- 💳 Database connection strings
-- 🪝 Webhook URLs with secrets
-- 📄 .env files and credentials
-
-### How It Works
-
-**1. Pre-commit Hook** (Local Protection)
 ```bash
-# Install hooks (done automatically by quickstart.sh)
+# Install hooks
 bash scripts/install-hooks.sh
 
-# Now git will check before every commit!
-git commit -m "add feature"
-# 🦞 Checking for sensitive information...
-# ✅ No sensitive information detected! Safe to commit. 🦞
-```
-
-**2. CI/CD Check** (Remote Protection)
-```yaml
-# Runs automatically on every push/PR
-- name: Check for secrets 🛡️
-  run: python3 scripts/check-secrets.py --all
-```
-
-**3. Manual Check**
-```bash
-# Check staged files
-python scripts/check-secrets.py
-
-# Check all tracked files
+# Manual check
 python scripts/check-secrets.py --all
-
-# Check specific file
-python scripts/check-secrets.py config.py
 ```
 
-### Best Practices
-
-**✅ Good: Use Environment Variables**
-```python
-import os
-
-# Store in .env (add to .gitignore!)
-x_key = os.getenv("X_CONSUMER_KEY")
-threads_token = os.getenv("THREADS_ACCESS_TOKEN")
-webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
-```
-
-**❌ Bad: Hardcode Secrets**
-```python
-# NEVER DO THIS! ❌
-x_key = "ck-1234567890abcdef"
-threads_token = "IGQ..."
-```
-
-### Guardrails
-
-See `GUARDRAILS.md` for:
-- Complete protection rules
-- Custom guardrail configuration
-- Testing and bypass options
-- Security best practices
-
-🦞 **Your API keys are safe with Smol Marketing Claw!** 🛡️
-
-## Discord Setup
-
-1. Create a bot at [Discord Developer Portal](https://discord.com/developers/applications)
-2. Enable **Message Content Intent** under Bot settings
-3. Invite the bot to your server with `Send Messages` permission
-4. Add credentials to your `.env` file:
-
-```bash
-DISCORD_BOT_TOKEN=your_bot_token
-DISCORD_CHANNEL_ID=your_channel_id
-```
-
-5. Get the channel ID: Discord Settings > Advanced > Developer Mode > Right-click channel > Copy Channel ID
+See `GUARDRAILS.md` for details.
 
 ## Requirements
 
-- Python 3.9+
-- X (Twitter) Developer Account (for X integration)
-- Threads/Meta Developer Account (for Threads integration)
-- Discord Bot (optional, for notifications)
-- Claude Pro subscription or API key (for AI features)
+- Python 3.10+
+- Discord bot applications (up to 5)
+- SNS API credentials (as needed per platform)
+- Claude API key or Codex access (for AI features)
 
 ## License
 
@@ -292,13 +269,8 @@ MIT
 
 ## Contributing
 
-Contributions are welcome! Feel free to:
-- Report bugs
-- Suggest features
-- Submit pull requests
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ---
 
-Made by a human and Claude Code 🦞
+Made by a human and Claude Code

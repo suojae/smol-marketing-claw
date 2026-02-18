@@ -1,0 +1,7 @@
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+model_reasoning_effort = "high"
+
+[mcp_servers.smol-claw]
+url = "http://localhost:8000/mcp"
+tool_timeout_sec = 1200
