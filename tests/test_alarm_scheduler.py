@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from src.bots.alarm_scheduler import AlarmScheduler, _MIN_INTERVAL_MINUTES, _MAX_ALARMS_PER_BOT
+from src.domain.alarm import AlarmScheduler, _MIN_INTERVAL_MINUTES, _MAX_ALARMS_PER_BOT
 
 
 @pytest.fixture

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.usage import UsageTracker, UsageLimitExceeded
+from src.infrastructure.usage import UsageTracker, UsageLimitExceeded
 from src.config import CONFIG
 
 

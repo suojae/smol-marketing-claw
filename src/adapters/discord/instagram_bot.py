@@ -1,7 +1,7 @@
 """Instagram bot — Instagram platform content creation and posting."""
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import INSTAGRAM_PERSONA
+from src.adapters.discord.base_bot import BaseMarketingBot
+from src.domain.personas import INSTAGRAM_PERSONA
 
 
 class InstagramBot(BaseMarketingBot):

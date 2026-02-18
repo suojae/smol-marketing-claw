@@ -119,7 +119,7 @@ class TestParseInstagramBody:
 
 class TestFormatSchedule:
     def test_daily(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         alarm = AlarmEntry(
             alarm_id="x", schedule_type="daily", hour=9, minute=0,
             interval_minutes=None, tz="Asia/Seoul", prompt="", channel_id=0,
@@ -128,7 +128,7 @@ class TestFormatSchedule:
         assert format_schedule(alarm) == "매일 09:00"
 
     def test_weekday(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         alarm = AlarmEntry(
             alarm_id="x", schedule_type="weekday", hour=14, minute=30,
             interval_minutes=None, tz="Asia/Seoul", prompt="", channel_id=0,
@@ -137,7 +137,7 @@ class TestFormatSchedule:
         assert format_schedule(alarm) == "평일 14:30"
 
     def test_interval_hours(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         alarm = AlarmEntry(
             alarm_id="x", schedule_type="interval", hour=None, minute=None,
             interval_minutes=120, tz="Asia/Seoul", prompt="", channel_id=0,
@@ -146,7 +146,7 @@ class TestFormatSchedule:
         assert format_schedule(alarm) == "2시간마다"
 
     def test_interval_minutes(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         alarm = AlarmEntry(
             alarm_id="x", schedule_type="interval", hour=None, minute=None,
             interval_minutes=30, tz="Asia/Seoul", prompt="", channel_id=0,
@@ -155,7 +155,7 @@ class TestFormatSchedule:
         assert format_schedule(alarm) == "30분마다"
 
     def test_once_hours(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         alarm = AlarmEntry(
             alarm_id="x", schedule_type="once", hour=None, minute=None,
             interval_minutes=60, tz="Asia/Seoul", prompt="", channel_id=0,

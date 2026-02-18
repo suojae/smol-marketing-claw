@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from src.bots.alarm_scheduler import AlarmScheduler
+from src.domain.alarm import AlarmScheduler
 
 
 class TestAlarmSchedulerDomain:

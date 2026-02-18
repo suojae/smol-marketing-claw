@@ -6,8 +6,8 @@ for backward compatibility and provides the HRBot Discord adapter.
 
 from typing import Dict
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import HR_PERSONA
+from src.adapters.discord.base_bot import BaseMarketingBot
+from src.domain.personas import HR_PERSONA
 from src.domain.hr import (
     BOT_NAME_ALIASES,
     HISTORY_FIRE_THRESHOLD,

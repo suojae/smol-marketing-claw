@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional, Protocol
 
 from src.config import AI_PROVIDER
-from src.usage import UsageTracker
+from src.infrastructure.usage import UsageTracker
 
 
 async def _run_subprocess(cmd_args):

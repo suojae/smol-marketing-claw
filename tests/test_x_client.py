@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from types import SimpleNamespace
 
-from src.x_client import XClient, XPostResult
+from src.adapters.sns.x_client import XClient, XPostResult
 
 
 @pytest.fixture(autouse=True)
@@ -22,13 +22,13 @@ def x_configured(monkeypatch):
         "x_access_token": "at",
         "x_access_token_secret": "ats",
     }
-    monkeypatch.setattr("src.x_client.CONFIG", {**fake})
+    monkeypatch.setattr("src.adapters.sns.x_client.CONFIG", {**fake})
     return fake
 
 
 @pytest.fixture
 def x_unconfigured(monkeypatch):
-    monkeypatch.setattr("src.x_client.CONFIG", {
+    monkeypatch.setattr("src.adapters.sns.x_client.CONFIG", {
         "x_consumer_key": "",
         "x_consumer_secret": "",
         "x_access_token": "",
@@ -46,7 +46,7 @@ class TestIsConfigured:
         assert client.is_configured is False
 
     def test_partial(self, monkeypatch):
-        monkeypatch.setattr("src.x_client.CONFIG", {
+        monkeypatch.setattr("src.adapters.sns.x_client.CONFIG", {
             "x_consumer_key": "ck",
             "x_consumer_secret": "",
             "x_access_token": "at",

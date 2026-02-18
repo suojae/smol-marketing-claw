@@ -5,13 +5,13 @@ import sys
 from typing import Dict
 
 from src.config import DISCORD_CHANNELS, DISCORD_TOKENS
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.team_lead_bot import TeamLeadBot
-from src.bots.threads_bot import ThreadsBot
-from src.bots.linkedin_bot import LinkedInBot
-from src.bots.instagram_bot import InstagramBot
-from src.bots.news_bot import ResearcherBot
-from src.bots.hr_bot import HRBot
+from src.adapters.discord.base_bot import BaseMarketingBot
+from src.adapters.discord.team_lead_bot import TeamLeadBot
+from src.adapters.discord.threads_bot import ThreadsBot
+from src.adapters.discord.linkedin_bot import LinkedInBot
+from src.adapters.discord.instagram_bot import InstagramBot
+from src.adapters.discord.news_bot import ResearcherBot
+from src.adapters.discord.hr_bot import HRBot
 
 
 def _log(msg: str):
@@ -25,7 +25,7 @@ def _create_executor():
     falls back to local passthrough if unavailable.
     """
     try:
-        from src.executor import create_executor
+        from src.adapters.llm.executor import create_executor
         return create_executor()
     except Exception as e:
         _log(f"AI executor unavailable ({e}), using passthrough")
@@ -48,7 +48,7 @@ def _create_sns_clients():
     clients = {}
 
     try:
-        from src.threads_client import ThreadsClient
+        from src.adapters.sns.threads_client import ThreadsClient
         c = ThreadsClient()
         if c.is_configured:
             clients["threads"] = c
@@ -59,7 +59,7 @@ def _create_sns_clients():
         _log(f"ThreadsClient unavailable: {e}")
 
     try:
-        from src.linkedin_client import LinkedInClient
+        from src.adapters.sns.linkedin_client import LinkedInClient
         c = LinkedInClient()
         if c.is_configured:
             clients["linkedin"] = c
@@ -70,7 +70,7 @@ def _create_sns_clients():
         _log(f"LinkedInClient unavailable: {e}")
 
     try:
-        from src.instagram_client import InstagramClient
+        from src.adapters.sns.instagram_client import InstagramClient
         c = InstagramClient()
         if c.is_configured:
             clients["instagram"] = c
@@ -81,7 +81,7 @@ def _create_sns_clients():
         _log(f"InstagramClient unavailable: {e}")
 
     try:
-        from src.news_client import NewsClient
+        from src.adapters.sns.news_client import NewsClient
         c = NewsClient()
         if c.is_configured:
             clients["news"] = c
@@ -92,7 +92,7 @@ def _create_sns_clients():
         _log(f"NewsClient unavailable: {e}")
 
     try:
-        from src.x_client import XClient
+        from src.adapters.sns.x_client import XClient
         c = XClient()
         if c.is_configured:
             clients["x"] = c

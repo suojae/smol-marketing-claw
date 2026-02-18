@@ -1,7 +1,7 @@
 """Outbound ports — interfaces for external system adapters."""
 
 from dataclasses import dataclass
-from typing import List, Optional, Protocol, runtime_checkable
+from typing import Dict, List, Optional, Protocol, runtime_checkable
 
 
 @dataclass
@@ -51,3 +51,16 @@ class NotificationPort(Protocol):
 
     async def send(self, channel_id: int, text: str) -> None: ...
     async def send_typing(self, channel_id: int) -> None: ...
+
+
+@runtime_checkable
+class ApprovalPort(Protocol):
+    """Interface for post approval queue."""
+
+    async def enqueue(
+        self,
+        platform: str,
+        action_kind: str,
+        text: str,
+        meta: Optional[Dict[str, str]] = None,
+    ) -> dict: ...

@@ -4,7 +4,7 @@ import pytest
 import tempfile
 from datetime import datetime, timedelta
 
-from src.memory import SimpleMemory, GuardrailMemory
+from src.infrastructure.memory import SimpleMemory, GuardrailMemory
 
 
 class TestSimpleMemory:

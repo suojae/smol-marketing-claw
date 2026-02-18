@@ -1,7 +1,7 @@
 """Researcher bot — market research, trend monitoring, competitor analysis."""
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import NEWS_PERSONA
+from src.adapters.discord.base_bot import BaseMarketingBot
+from src.domain.personas import NEWS_PERSONA
 
 
 class ResearcherBot(BaseMarketingBot):

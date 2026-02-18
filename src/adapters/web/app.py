@@ -7,9 +7,9 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from src.config import CONFIG, AI_PROVIDER
-from src.executor import create_executor
-from src.sns_routes import sns_router
-from src.persona import BOT_PERSONA
+from src.adapters.llm.executor import create_executor
+from src.adapters.web.sns_routes import sns_router
+from src.domain.persona import BOT_PERSONA
 
 app = FastAPI(title="Smol Claw Marketing Server")
 app.include_router(sns_router)
@@ -70,7 +70,7 @@ async def startup_event():
     has_multi_bot = any(DISCORD_TOKENS.values())
 
     if has_multi_bot:
-        from src.bots.launcher import launch_all_bots
+        from src.adapters.discord.launcher import launch_all_bots
         print("Starting multi-bot system...")
 
         async def _start_multi_bots():

@@ -23,7 +23,7 @@ from src.domain.action_parser import (
     strip_actions,
 )
 from src.ports.inbound import IncomingMessage
-from src.ports.outbound import LLMPort, NotificationPort
+from src.ports.outbound import ApprovalPort, LLMPort, NotificationPort
 
 
 def _log(msg: str):
@@ -51,6 +51,7 @@ class AgentBrain:
         executor: Optional[LLMPort] = None,
         clients: Optional[Dict[str, Any]] = None,
         notification: Optional[NotificationPort] = None,
+        approval: Optional[ApprovalPort] = None,
         aliases: Optional[List[str]] = None,
         own_channel_id: int = 0,
         team_channel_ids: Optional[set] = None,
@@ -66,6 +67,7 @@ class AgentBrain:
         self.executor = executor
         self._clients: Dict[str, Any] = clients or {}
         self._notification = notification
+        self._approval = approval
         self._action_lock = asyncio.Lock()
         self._channel_history: OrderedDict[int, List[Dict[str, str]]] = OrderedDict()
         self._max_history = 10
@@ -350,9 +352,8 @@ class AgentBrain:
             if image_url:
                 meta["image_url"] = image_url
 
-        if CONFIG["require_manual_approval"]:
-            from src.approval import enqueue_post
-            result = await enqueue_post(platform, action_kind, post_text, meta=meta)
+        if CONFIG["require_manual_approval"] and self._approval:
+            result = await self._approval.enqueue(platform, action_kind, post_text, meta=meta)
             return f"[{self.bot_name}] 승인 대기 중 (ID: {result['approval_id']})"
 
         _log(f"[{self.bot_name}] AUDIT: direct post to {platform} — {post_text[:100]!r}")

@@ -55,9 +55,9 @@ class TestIncomingMessage:
 
 class TestNotificationPort:
     def test_discord_notification_adapter_import(self):
-        from src.adapters.discord_adapter import DiscordNotificationAdapter
+        from src.adapters.discord.adapter import DiscordNotificationAdapter
         assert DiscordNotificationAdapter is not None
 
     def test_discord_bot_adapter_import(self):
-        from src.adapters.discord_adapter import DiscordBotAdapter
+        from src.adapters.discord.adapter import DiscordBotAdapter
         assert DiscordBotAdapter is not None

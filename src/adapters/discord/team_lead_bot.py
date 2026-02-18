@@ -2,8 +2,8 @@
 
 from typing import Dict
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import TEAM_LEAD_PERSONA
+from src.adapters.discord.base_bot import BaseMarketingBot
+from src.domain.personas import TEAM_LEAD_PERSONA
 
 
 class TeamLeadBot(BaseMarketingBot):
@@ -23,7 +23,7 @@ class TeamLeadBot(BaseMarketingBot):
     async def _execute_action(self, action_type: str, body: str, message=None) -> str:
         """Handle HR actions (fire/hire/status) in addition to SNS actions."""
         if action_type in ("FIRE_BOT", "HIRE_BOT", "STATUS_REPORT"):
-            from src.bots.hr_bot import fire_bot, hire_bot, status_report
+            from src.domain.hr import fire_bot, hire_bot, status_report
             if action_type == "FIRE_BOT":
                 return await fire_bot(body.strip(), self.bot_registry, self.bot_name)
             elif action_type == "HIRE_BOT":

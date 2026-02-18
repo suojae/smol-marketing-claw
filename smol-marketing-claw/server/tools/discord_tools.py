@@ -22,13 +22,13 @@ async def smol_claw_discord_control(action: str) -> dict:
     state = get_state()
 
     if action == "status":
-        return {"status": "Use src/bots/launcher.py to manage Discord bots independently."}
+        return {"status": "Use src/adapters/discord/launcher.py to manage Discord bots independently."}
 
     elif action == "start":
         return {
             "success": False,
-            "message": "Discord bots are now managed via src/bots/launcher.py. "
-                       "Run: python -c \"import asyncio; from src.bots.launcher import launch_all_bots; asyncio.run(launch_all_bots())\"",
+            "message": "Discord bots are now managed via src/adapters/discord/launcher.py. "
+                       "Run: python -c \"import asyncio; from src.adapters.discord.launcher import launch_all_bots; asyncio.run(launch_all_bots())\"",
         }
 
     elif action == "stop":

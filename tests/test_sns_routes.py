@@ -4,9 +4,9 @@ import pytest
 from unittest.mock import patch, AsyncMock
 from httpx import AsyncClient, ASGITransport
 
-from src.app import app
-from src.x_client import XPostResult
-from src.threads_client import ThreadsPostResult
+from src.adapters.web.app import app
+from src.adapters.sns.x_client import XPostResult
+from src.adapters.sns.threads_client import ThreadsPostResult
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ class TestXRoutes:
     @pytest.mark.asyncio
     async def test_x_post_success(self, transport):
         result = XPostResult(success=True, post_id="1", text="hi")
-        with patch("src.sns_routes.x_client") as mock:
+        with patch("src.adapters.web.sns_routes.x_client") as mock:
             mock.is_configured = True
             mock.post = AsyncMock(return_value=result)
             async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -43,7 +43,7 @@ class TestXRoutes:
     @pytest.mark.asyncio
     async def test_x_reply_success(self, transport):
         result = XPostResult(success=True, post_id="2", text="reply")
-        with patch("src.sns_routes.x_client") as mock:
+        with patch("src.adapters.web.sns_routes.x_client") as mock:
             mock.is_configured = True
             mock.reply = AsyncMock(return_value=result)
             async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -62,7 +62,7 @@ class TestThreadsRoutes:
     @pytest.mark.asyncio
     async def test_threads_post_success(self, transport):
         result = ThreadsPostResult(success=True, post_id="t1", text="hi")
-        with patch("src.sns_routes.threads_client") as mock:
+        with patch("src.adapters.web.sns_routes.threads_client") as mock:
             mock.is_configured = True
             mock.post = AsyncMock(return_value=result)
             async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -79,7 +79,7 @@ class TestThreadsRoutes:
     @pytest.mark.asyncio
     async def test_threads_reply_success(self, transport):
         result = ThreadsPostResult(success=True, post_id="tr1", text="reply")
-        with patch("src.sns_routes.threads_client") as mock:
+        with patch("src.adapters.web.sns_routes.threads_client") as mock:
             mock.is_configured = True
             mock.reply = AsyncMock(return_value=result)
             async with AsyncClient(transport=transport, base_url="http://test") as ac:

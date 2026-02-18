@@ -1,15 +1,15 @@
 """Smol Claw — Multi-Agent Marketing System package."""
 
 from src.config import CONFIG, MODEL_ALIASES, DEFAULT_MODEL, DISCORD_CHANNELS, DISCORD_TOKENS
-from src.context import ContextCollector
-from src.usage import UsageLimitExceeded, UsageTracker
-from src.memory import SimpleMemory, GuardrailMemory
-from src.persona import BOT_PERSONA
-from src.x_client import XClient, XPostResult
-from src.threads_client import ThreadsClient, ThreadsPostResult
-from src.linkedin_client import LinkedInClient, LinkedInPostResult
-from src.instagram_client import InstagramClient, InstagramPostResult
-from src.news_client import NewsClient, NewsItem, NewsSearchResult
+from src.infrastructure.context import ContextCollector
+from src.infrastructure.usage import UsageLimitExceeded, UsageTracker
+from src.infrastructure.memory import SimpleMemory, GuardrailMemory
+from src.domain.persona import BOT_PERSONA
+from src.adapters.sns.x_client import XClient, XPostResult
+from src.adapters.sns.threads_client import ThreadsClient, ThreadsPostResult
+from src.adapters.sns.linkedin_client import LinkedInClient, LinkedInPostResult
+from src.adapters.sns.instagram_client import InstagramClient, InstagramPostResult
+from src.adapters.sns.news_client import NewsClient, NewsItem, NewsSearchResult
 
 __all__ = [
     "CONFIG",

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from src.executor import CodexExecutor, create_executor
+from src.adapters.llm.executor import CodexExecutor, create_executor
 
 
 def run(coro):

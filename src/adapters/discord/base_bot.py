@@ -12,7 +12,7 @@ from typing import Any, Optional, Dict, List
 
 import discord
 
-from src.bots.alarm_scheduler import AlarmEntry, AlarmScheduler
+from src.domain.alarm import AlarmEntry, AlarmScheduler
 from src.config import CONFIG, MODEL_ALIASES, DEFAULT_MODEL
 from src.domain.action_parser import (
     ACTION_MAP as _ACTION_MAP,
@@ -24,7 +24,7 @@ from src.domain.action_parser import (
     parse_instagram_body,
     strip_actions,
 )
-from src.executor import AIExecutor
+from src.adapters.llm.executor import AIExecutor
 
 
 def _log(msg: str):
@@ -414,7 +414,7 @@ class BaseMarketingBot(discord.Client):
                 meta["image_url"] = image_url
 
         if CONFIG["require_manual_approval"]:
-            from src.approval import enqueue_post
+            from src.adapters.web.approval import enqueue_post
             result = await enqueue_post(platform, action_kind, post_text, meta=meta)
             return f"[{self.bot_name}] 승인 대기 중 (ID: {result['approval_id']})"
 

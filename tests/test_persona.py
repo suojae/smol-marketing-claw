@@ -1,6 +1,6 @@
 """Tests for bot persona definition."""
 
-from src.persona import BOT_PERSONA
+from src.domain.persona import BOT_PERSONA
 
 
 def test_bot_persona_not_empty():

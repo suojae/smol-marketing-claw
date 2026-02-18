@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.bots.base_bot import BaseMarketingBot
+from src.adapters.discord.base_bot import BaseMarketingBot
 
 
 # ---------------------------------------------------------------------------
@@ -28,7 +28,7 @@ def _make_bot(executor=None, tmp_dir=None) -> BaseMarketingBot:
         executor=executor,
     )
     if tmp_dir:
-        from src.bots.alarm_scheduler import AlarmScheduler
+        from src.domain.alarm import AlarmScheduler
         bot._alarm_scheduler = AlarmScheduler(bot_name="TestBot", storage_dir=tmp_dir)
     fake_user = MagicMock()
     fake_user.id = BOT_USER_ID
@@ -344,32 +344,32 @@ class TestFireAlarm:
 
 class TestFormatSchedule:
     def test_daily(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         a = AlarmEntry("id", "daily", 9, 0, None, "UTC", "", 0, "", "")
         assert BaseMarketingBot._format_schedule(a) == "매일 09:00"
 
     def test_weekday(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         a = AlarmEntry("id", "weekday", 14, 30, None, "UTC", "", 0, "", "")
         assert BaseMarketingBot._format_schedule(a) == "평일 14:30"
 
     def test_interval_hours(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         a = AlarmEntry("id", "interval", None, None, 120, "UTC", "", 0, "", "")
         assert BaseMarketingBot._format_schedule(a) == "2시간마다"
 
     def test_interval_minutes(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         a = AlarmEntry("id", "interval", None, None, 30, "UTC", "", 0, "", "")
         assert BaseMarketingBot._format_schedule(a) == "30분마다"
 
     def test_once_hours(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         a = AlarmEntry("id", "once", None, None, 60, "UTC", "", 0, "", "")
         assert BaseMarketingBot._format_schedule(a) == "1시간 후 1회"
 
     def test_once_minutes(self):
-        from src.bots.alarm_scheduler import AlarmEntry
+        from src.domain.alarm import AlarmEntry
         a = AlarmEntry("id", "once", None, None, 30, "UTC", "", 0, "", "")
         assert BaseMarketingBot._format_schedule(a) == "30분 후 1회"
 

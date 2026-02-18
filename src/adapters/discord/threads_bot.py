@@ -1,7 +1,7 @@
 """Threads bot — Threads platform content creation and posting."""
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import THREADS_PERSONA
+from src.adapters.discord.base_bot import BaseMarketingBot
+from src.domain.personas import THREADS_PERSONA
 
 
 class ThreadsBot(BaseMarketingBot):

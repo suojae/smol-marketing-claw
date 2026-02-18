@@ -5,7 +5,7 @@ from typing import Optional
 
 from server.mcp_server import mcp
 from server.state import get_state
-from src.persona import BOT_PERSONA
+from src.domain.persona import BOT_PERSONA
 
 
 def _log(msg: str):

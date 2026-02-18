@@ -1,7 +1,7 @@
 """LinkedIn bot — LinkedIn platform content creation and posting."""
 
-from src.bots.base_bot import BaseMarketingBot
-from src.bots.personas import LINKEDIN_PERSONA
+from src.adapters.discord.base_bot import BaseMarketingBot
+from src.domain.personas import LINKEDIN_PERSONA
 
 
 class LinkedInBot(BaseMarketingBot):
