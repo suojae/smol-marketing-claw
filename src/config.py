@@ -152,7 +152,7 @@ class AppConfig:
         """Create AppConfig from environment variables."""
         return cls(
             port=int(os.getenv("PORT", "3000")),
-            session_id=str(uuid.uuid4()),
+            session_id=CONFIG["session_id"],
             ai_provider=AI_PROVIDER,
             default_model=DEFAULT_MODEL,
             require_manual_approval=CONFIG["require_manual_approval"],

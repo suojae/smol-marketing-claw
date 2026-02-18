@@ -113,6 +113,32 @@ class BaseMarketingBot(discord.Client):
         self._channel_history.clear()
         _log(f"[{self.bot_name}] conversation history cleared")
 
+    # -- Public properties for HR / domain access --
+
+    @property
+    def active(self) -> bool:
+        return self._active
+
+    @active.setter
+    def active(self, value: bool):
+        self._active = value
+
+    @property
+    def rehired(self) -> bool:
+        return self._rehired
+
+    @rehired.setter
+    def rehired(self, value: bool):
+        self._rehired = value
+
+    def history_message_count(self) -> int:
+        """Total message count across all channels."""
+        return sum(len(h) for h in self._channel_history.values())
+
+    def cancel_own_tasks(self) -> int:
+        """Cancel all active tasks. Public alias for _cancel_own_tasks."""
+        return self._cancel_own_tasks()
+
     async def on_message(self, message: discord.Message):
         if not self._active:
             return

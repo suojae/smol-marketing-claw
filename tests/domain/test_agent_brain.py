@@ -117,7 +117,7 @@ class TestShouldRespond:
 
     def test_ignores_when_inactive(self):
         brain, _, _ = _make_brain()
-        brain._active = False
+        brain.active = False
         msg = _make_msg(is_own_channel=True)
         assert brain.should_respond(msg) is False
 

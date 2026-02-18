@@ -52,6 +52,12 @@ class TestAppConfig:
         assert c.session_id  # should have a UUID
         assert c.ai_provider in ("claude", "codex")
 
+    def test_from_env_idempotent_session_id(self):
+        """from_env() should reuse CONFIG's session_id, not generate a new one."""
+        c1 = AppConfig.from_env()
+        c2 = AppConfig.from_env()
+        assert c1.session_id == c2.session_id
+
     def test_custom(self):
         c = AppConfig(
             port=8080,

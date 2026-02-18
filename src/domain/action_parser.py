@@ -3,10 +3,15 @@
 Pure Python, no framework dependencies.
 """
 
+from __future__ import annotations
+
 import re
-from typing import Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 from src.domain.models import ActionBlock
+
+if TYPE_CHECKING:
+    from src.domain.alarm import AlarmEntry
 
 # Action block regex: [ACTION:TYPE] ... [/ACTION]
 ACTION_RE = re.compile(
@@ -79,7 +84,7 @@ def parse_instagram_body(body: str) -> Tuple[str, str]:
     return "\n".join(caption_lines).strip(), image_url
 
 
-def format_schedule(alarm) -> str:
+def format_schedule(alarm: "AlarmEntry") -> str:
     """Format alarm schedule for display."""
     if alarm.schedule_type == "daily":
         return f"매일 {alarm.hour:02d}:{alarm.minute:02d}"

@@ -1,12 +1,13 @@
 """HR domain logic — bot lifecycle management.
 
-Pure domain functions that operate on bot state without Discord dependency.
-The functions accept a bot_registry dict and manipulate bot state through
-the public interface (active flag, history, tasks).
+Pure domain functions that operate on bot state through public interface.
+No Discord dependency. Bots are accessed via public properties:
+  bot.active, bot.rehired, bot.bot_name, bot.cancel_own_tasks(),
+  bot.clear_history(), bot.history_message_count().
 """
 
 import sys
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple
 
 
 def _log(msg: str):
@@ -71,14 +72,11 @@ async def fire_bot(
         label = "Captain(TeamLead)" if key == "lead" else "HR"
         return f"[{caller}] {label}은(는) 보호 대상이므로 해고 불가함."
 
-    if not bot_or_msg._active:
+    if not bot_or_msg.active:
         return f"[{caller}] {bot_or_msg.bot_name}은(는) 이미 비활성 상태임. 추가 조치 불요함."
 
-    # Cancel any active tasks before deactivating
-    for ch_id, task in list(bot_or_msg._active_tasks.items()):
-        if not task.done():
-            task.cancel()
-    bot_or_msg._active = False
+    bot_or_msg.cancel_own_tasks()
+    bot_or_msg.active = False
     bot_or_msg.clear_history()
     _log(f"[{caller}] FIRED: {bot_or_msg.bot_name} (key={key})")
     return f"[{caller}] {bot_or_msg.bot_name} 해고 처리 완료됨. 컨텍스트 초기화, 진행 중 작업 취소됨."
@@ -92,11 +90,11 @@ async def hire_bot(
     if key is None:
         return bot_or_msg
 
-    if bot_or_msg._active:
+    if bot_or_msg.active:
         return f"[{caller}] {bot_or_msg.bot_name}은(는) 이미 활성 상태임. 추가 조치 불요함."
 
-    bot_or_msg._active = True
-    bot_or_msg._rehired = True
+    bot_or_msg.active = True
+    bot_or_msg.rehired = True
     _log(f"[{caller}] HIRED: {bot_or_msg.bot_name} (key={key})")
     return (
         f"[{caller}] {bot_or_msg.bot_name} 채용(재활성화) 완료됨.\n"
@@ -119,17 +117,17 @@ def status_report(
 
     for key in sorted(registry.keys()):
         bot = registry[key]
-        status = "활성" if bot._active else "비활성"
+        status = "활성" if bot.active else "비활성"
         protected = " (보호)" if key in PROTECTED_KEYS else ""
-        msg_count = sum(len(h) for h in bot._channel_history.values())
+        msg_count = bot.history_message_count()
 
-        if bot._active:
+        if bot.active:
             active_count += 1
         else:
             inactive_count += 1
 
         tag = ""
-        if bot._active and key not in PROTECTED_KEYS:
+        if bot.active and key not in PROTECTED_KEYS:
             if msg_count >= HISTORY_FIRE_THRESHOLD:
                 tag = " ⚠ 즉시 리셋 권고"
                 warn_bots.append((bot.bot_name, msg_count, "critical"))

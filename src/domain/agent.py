@@ -10,7 +10,7 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
-from src.bots.alarm_scheduler import AlarmEntry, AlarmScheduler
+from src.domain.alarm import AlarmEntry, AlarmScheduler
 from src.config import CONFIG, MODEL_ALIASES, DEFAULT_MODEL
 from src.domain.action_parser import (
     ACTION_MAP,
@@ -85,6 +85,39 @@ class AgentBrain:
         self._get_channel: Optional[Callable] = None
         # Callback for checking if connection is closed
         self._is_closed: Optional[Callable] = None
+
+    # -- Public properties for HR / adapter access --
+
+    @property
+    def active(self) -> bool:
+        return self._active
+
+    @active.setter
+    def active(self, value: bool):
+        self._active = value
+
+    @property
+    def rehired(self) -> bool:
+        return self._rehired
+
+    @rehired.setter
+    def rehired(self, value: bool):
+        self._rehired = value
+
+    def history_message_count(self) -> int:
+        """Total message count across all channels (for HR status reports)."""
+        return sum(len(h) for h in self._channel_history.values())
+
+    def wire(
+        self,
+        notification: NotificationPort,
+        get_channel: Callable,
+        is_closed: Callable,
+    ):
+        """Wire up adapter-provided callbacks. Called by DiscordBotAdapter.on_ready."""
+        self._notification = notification
+        self._get_channel = get_channel
+        self._is_closed = is_closed
 
     def clear_history(self):
         """Clear all conversation history."""
