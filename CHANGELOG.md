@@ -5,6 +5,21 @@ All notable changes to Smol Marketing Claw will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-02-19
+
+### Removed
+- **중첩 MCP 서버 디렉토리 삭제** — `smol-marketing-claw/smol-marketing-claw/` 중첩 서브프로젝트 제거 (15개 파일, -1,024줄)
+- `approval.py` dead code 삭제 (`approval_queue.py`와 완전 중복)
+
+### Fixed
+- **봇 간 무한 대화 루프 방지** — 하위봇이 불필요한 @TeamLead 멘션을 생성하던 문제 수정 (#77)
+- `approval_queue.py`: `server.state` 의존성 제거 → `src.adapters.sns` 직접 import + 싱글턴 캐싱
+
+### Changed
+- README.md: MCP 서버 섹션 제거, 실행 명령 간소화, 레포 URL 수정
+- `.codex/config.toml`: 삭제된 MCP 서버 참조 제거
+- `AGENTS.md`: 실행 명령 경로 수정
+
 ## [0.1.0] - 2026-02-09
 
 ### Added

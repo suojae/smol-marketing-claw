@@ -51,7 +51,6 @@ Discord Server
 - **5 SNS Platforms** - X, Threads, LinkedIn, Instagram, News search
 - **Action Engine** - LLM responses contain `[ACTION:TYPE]...[/ACTION]` blocks, parsed and executed automatically
 - **Manual Approval** - Posts queue for human review before publishing (configurable)
-- **MCP Server** - Streamable HTTP server for tool integration (Codex CLI compatible)
 - **Smart Memory** - Remembers past actions and avoids duplicate posts
 - **Secrets Protection** - Pre-commit hooks and CI checks for sensitive data
 - **Graceful Degradation** - Bots start even if some SNS credentials are missing
@@ -67,8 +66,8 @@ Discord Server
 ### 2. Install
 
 ```bash
-git clone https://github.com/suojae/smol-claw.git
-cd smol-claw
+git clone https://github.com/suojae/smol-marketing-claw.git
+cd smol-marketing-claw
 pip install -r requirements.txt
 ```
 
@@ -120,21 +119,13 @@ AI_DEFAULT_MODEL=sonnet             # opus, sonnet, or haiku
 REQUIRE_MANUAL_APPROVAL=true        # Set to false to auto-publish (not recommended)
 ```
 
-### 4. Run the Bots
+### 4. Run
 
 ```bash
-python -m src.bots.launcher
+python autonomous-ai-server.py
 ```
 
-Bots that have valid tokens will start; missing tokens are skipped with a log message.
-
-### 5. Run the MCP Server (optional)
-
-```bash
-cd smol-marketing-claw
-python server/mcp_server.py
-# Streamable HTTP server at http://127.0.0.1:8000
-```
+The server starts and launches all Discord bots automatically. Bots with valid tokens will start; missing tokens are skipped with a log message.
 
 ## Discord Server Setup
 
@@ -206,30 +197,10 @@ AI marketing trends
 
 When `REQUIRE_MANUAL_APPROVAL=true` (default), POST actions queue for human review instead of publishing immediately.
 
-Use the MCP server tools to manage the queue:
-- `list_pending_posts` - View pending posts
-- `approve_post` - Approve and publish a queued post
-- `reject_post` - Reject a queued post
-
-## MCP Server
-
-The MCP server at `smol-marketing-claw/server/mcp_server.py` exposes 13 tools via Streamable HTTP:
-
-| Tool | Description |
-|------|-------------|
-| `post_x` | Post a tweet to X |
-| `post_threads` | Post to Threads |
-| `post_linkedin` | Post to LinkedIn |
-| `post_instagram` | Post to Instagram (image required) |
-| `search_news` | Search recent tweets by keyword |
-| `list_pending_posts` | List posts awaiting approval |
-| `approve_post` | Approve a pending post |
-| `reject_post` | Reject a pending post |
-| `ask` | Ask the AI a question |
-| `get_status` | Server status and usage info |
-| `get_memory` | View memory contents |
-| `set_model` | Change AI model |
-| `get_config` | View current configuration |
+Use the web API to manage the queue:
+- `GET /approvals/pending` - View pending posts
+- `POST /approvals/{id}/approve` - Approve and publish a queued post
+- `POST /approvals/{id}/reject` - Reject a queued post
 
 ## Configuration
 
