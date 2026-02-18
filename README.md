@@ -128,12 +128,10 @@ python -m src.bots.launcher
 
 Bots that have valid tokens will start; missing tokens are skipped with a log message.
 
-### 5. Run the MCP Server (optional)
+### 5. Run the Server
 
 ```bash
-cd smol-marketing-claw
-python server/mcp_server.py
-# Streamable HTTP server at http://127.0.0.1:8000
+python autonomous-ai-server.py
 ```
 
 ## Discord Server Setup
@@ -213,7 +211,7 @@ Use the MCP server tools to manage the queue:
 
 ## MCP Server
 
-The MCP server at `smol-marketing-claw/server/mcp_server.py` exposes 13 tools via Streamable HTTP:
+The server exposes the following tools:
 
 | Tool | Description |
 |------|-------------|

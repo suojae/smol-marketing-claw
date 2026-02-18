@@ -85,9 +85,6 @@ DISCORD_NEWS_CHANNEL_ID
 
 ### 실행
 ```bash
-# MCP 서버
-cd smol-marketing-claw && python -m server.mcp_server
-
 # 5봇 동시 실행
-python -c "import asyncio; from src.bots.launcher import launch_all_bots; asyncio.run(launch_all_bots())"
+python -c "import asyncio; from src.adapters.discord.launcher import launch_all_bots; asyncio.run(launch_all_bots())"
 ```
