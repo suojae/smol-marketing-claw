@@ -116,8 +116,14 @@ def _update_status(rec_id: str, status: str, **kw) -> Optional[PostApproval]:
     return found
 
 
+_client_cache: Dict[str, Any] = {}
+
+
 def _get_client(platform: str):
-    """Return an SNS client for the given platform."""
+    """Return a cached singleton SNS client for the given platform."""
+    if platform in _client_cache:
+        return _client_cache[platform]
+
     from src.adapters.sns.x import XClient
     from src.adapters.sns.threads import ThreadsClient
     from src.adapters.sns.linkedin import LinkedInClient
@@ -132,7 +138,9 @@ def _get_client(platform: str):
     factory = factories.get(platform)
     if not factory:
         raise ValueError(f"unsupported platform: {platform}")
-    return factory()
+    client = factory()
+    _client_cache[platform] = client
+    return client
 
 
 async def approve_and_execute(rec_id: str) -> Dict[str, Any]:
