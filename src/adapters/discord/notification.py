@@ -91,8 +91,7 @@ class DiscordBotAdapter(discord.Client):
         _log(f"[{self._brain.bot_name}] logged in as {self.user}")
         # Wire up adapter callbacks via public method
         notification = DiscordNotificationAdapter(self)
-        self._brain.wire(notification, self.get_channel, self.is_closed)
-        await self._brain.start_alarm_loop()
+        self._brain._notification = notification
 
     async def on_message(self, message: discord.Message):
         """Convert Discord message and delegate to AgentBrain."""
@@ -144,24 +143,11 @@ class DiscordBotAdapter(discord.Client):
             if msg.is_own_channel:
                 await notification.send(msg.channel_id, f"[{self._brain.bot_name}] 대화 기록 초기화됨.")
 
-        elif cmd == "!alarms":
-            alarms = self._brain._alarm_scheduler.list_alarms()
-            if not alarms:
-                await notification.send(msg.channel_id, f"[{self._brain.bot_name}] 등록된 알람 없음.")
-            else:
-                from src.domain.action_parser import escape_mentions, format_schedule
-                lines = [f"[{self._brain.bot_name}] 알람 목록 ({len(alarms)}개):"]
-                for a in alarms:
-                    sched = format_schedule(a)
-                    lines.append(f"- `{a.alarm_id}` | {sched} | {escape_mentions(a.prompt[:100])}")
-                await notification.send(msg.channel_id, "\n".join(lines))
-
         elif cmd == "!help":
             help_text = (
                 f"**[{self._brain.bot_name}] 명령어 목록**\n"
                 "`!cancel` — 진행 중인 응답 취소\n"
                 "`!clear` — 대화 기록 초기화\n"
-                "`!alarms` — 등록된 알람 목록\n"
                 "`!help` — 이 도움말"
             )
             await notification.send(msg.channel_id, help_text)

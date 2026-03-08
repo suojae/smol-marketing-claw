@@ -33,7 +33,7 @@ _file_lock = asyncio.Lock()
 @dataclass
 class PostApproval:
     id: str
-    platform: str  # "threads" | "x" | "linkedin" | "instagram"
+    platform: str  # "threads" | "x" | "instagram"
     action: str  # "post" | "reply"
     text: str
     meta: Dict[str, Any]
@@ -126,13 +126,11 @@ def _get_client(platform: str):
 
     from src.adapters.sns.x import XClient
     from src.adapters.sns.threads import ThreadsClient
-    from src.adapters.sns.linkedin import LinkedInClient
     from src.adapters.sns.instagram import InstagramClient
 
     factories = {
         "x": XClient,
         "threads": ThreadsClient,
-        "linkedin": LinkedInClient,
         "instagram": InstagramClient,
     }
     factory = factories.get(platform)

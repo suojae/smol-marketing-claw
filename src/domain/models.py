@@ -7,5 +7,5 @@ from dataclasses import dataclass
 class ActionBlock:
     """Parsed action from LLM response."""
 
-    action_type: str  # e.g. "POST_THREADS", "SET_ALARM"
+    action_type: str  # e.g. "POST_THREADS", "POST_X"
     body: str

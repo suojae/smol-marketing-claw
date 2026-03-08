@@ -193,7 +193,7 @@ async def test_clear_team_channel_without_mention_silent():
 
 @pytest.mark.asyncio
 async def test_help_team_channel_without_mention_ignored():
-    """!help in team channel without mention → bots stay silent."""
+    """!help in team channel without mention → ignored (mention required)."""
     bot = _make_bot()
     msg = _make_message("!help", TEAM_CHANNEL)
     await bot.on_message(msg)
@@ -298,20 +298,20 @@ async def test_bot_message_suppressed_after_cancel():
 def test_alias_text_mention():
     """Bot with aliases should respond to @OldName text mentions."""
     bot = BaseMarketingBot(
-        bot_name="ResearcherBot",
+        bot_name="HRBot",
         own_channel_id=OWN_CHANNEL,
         team_channel_id=TEAM_CHANNEL,
-        aliases=["NewsBot"],
+        aliases=["HR"],
     )
     bot.persona = "test"
     fake_user = MagicMock()
     fake_user.id = BOT_USER_ID
-    fake_user.name = "ResearcherBot"
-    fake_user.display_name = "ResearcherBot"
+    fake_user.name = "HRBot"
+    fake_user.display_name = "HRBot"
     bot._connection = MagicMock()
     bot._connection.user = fake_user
 
-    assert bot._is_text_mentioned("@NewsBot 조사해줘")
-    assert bot._is_text_mentioned("@newsbot 조사해줘")
-    assert bot._is_text_mentioned("@ResearcherBot 조사해줘")
+    assert bot._is_text_mentioned("@HR 현황 알려줘")
+    assert bot._is_text_mentioned("@hr 현황 알려줘")
+    assert bot._is_text_mentioned("@HRBot 현황 알려줘")
     assert not bot._is_text_mentioned("@ThreadsBot 조사해줘")

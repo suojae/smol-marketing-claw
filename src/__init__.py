@@ -7,9 +7,7 @@ from src.infrastructure.memory import SimpleMemory, GuardrailMemory
 from src.domain.persona import BOT_PERSONA
 from src.adapters.sns.x import XClient, XPostResult
 from src.adapters.sns.threads import ThreadsClient, ThreadsPostResult
-from src.adapters.sns.linkedin import LinkedInClient, LinkedInPostResult
 from src.adapters.sns.instagram import InstagramClient, InstagramPostResult
-from src.adapters.sns.news import NewsClient, NewsItem, NewsSearchResult
 
 __all__ = [
     "CONFIG",
@@ -27,11 +25,6 @@ __all__ = [
     "XPostResult",
     "ThreadsClient",
     "ThreadsPostResult",
-    "LinkedInClient",
-    "LinkedInPostResult",
     "InstagramClient",
     "InstagramPostResult",
-    "NewsClient",
-    "NewsItem",
-    "NewsSearchResult",
 ]

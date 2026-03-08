@@ -54,17 +54,6 @@ def _create_sns_clients():
         _log(f"ThreadsClient unavailable: {e}")
 
     try:
-        from src.adapters.sns.linkedin import LinkedInClient
-        c = LinkedInClient()
-        if c.is_configured:
-            clients["linkedin"] = c
-            _log("LinkedInClient loaded")
-        else:
-            _log("LinkedInClient not configured — skipping")
-    except Exception as e:
-        _log(f"LinkedInClient unavailable: {e}")
-
-    try:
         from src.adapters.sns.instagram import InstagramClient
         c = InstagramClient()
         if c.is_configured:
@@ -74,17 +63,6 @@ def _create_sns_clients():
             _log("InstagramClient not configured — skipping")
     except Exception as e:
         _log(f"InstagramClient unavailable: {e}")
-
-    try:
-        from src.adapters.sns.news import NewsClient
-        c = NewsClient()
-        if c.is_configured:
-            clients["news"] = c
-            _log("NewsClient loaded")
-        else:
-            _log("NewsClient not configured — skipping")
-    except Exception as e:
-        _log(f"NewsClient unavailable: {e}")
 
     try:
         from src.adapters.sns.x import XClient
@@ -116,9 +94,7 @@ def _build_bots():
     # Bot definitions: (token_key, bot_name, sns_filter, aliases)
     _BOT_DEFS = [
         ("threads", "ThreadsBot", {"threads"}, []),
-        ("linkedin", "LinkedInBot", {"linkedin"}, []),
         ("instagram", "InstagramBot", {"instagram"}, []),
-        ("news", "ResearcherBot", {"news"}, ["NewsBot"]),
         ("hr", "HRBot", set(), ["HR"]),
     ]
 

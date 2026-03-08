@@ -173,10 +173,6 @@ class TestCommands:
         brain, _, _ = _make_brain()
         assert brain.is_command("!clear all") == "!clear"
 
-    def test_is_command_alarms(self):
-        brain, _, _ = _make_brain()
-        assert brain.is_command("!alarms") == "!alarms"
-
     def test_is_command_help(self):
         brain, _, _ = _make_brain()
         assert brain.is_command("!help") == "!help"
@@ -264,52 +260,6 @@ class TestActionExecution:
     async def test_no_client_for_platform(self):
         brain, _, _ = _make_brain(clients={})
         result = await brain.execute_action("POST_X", "tweet text")
-        assert "연결되지 않았음" in result
-
-    @pytest.mark.asyncio
-    async def test_set_alarm_missing_schedule(self):
-        brain, _, _ = _make_brain()
-        result = await brain.execute_action(
-            "SET_ALARM", "prompt: hello", channel_id=100, author="user"
-        )
-        assert "schedule 필드 누락" in result
-
-    @pytest.mark.asyncio
-    async def test_set_alarm_missing_prompt(self):
-        brain, _, _ = _make_brain()
-        result = await brain.execute_action(
-            "SET_ALARM", "schedule: daily 09:00", channel_id=100, author="user"
-        )
-        assert "prompt 필드 누락" in result
-
-    @pytest.mark.asyncio
-    async def test_set_alarm_success(self):
-        brain, _, _ = _make_brain()
-        result = await brain.execute_action(
-            "SET_ALARM",
-            "schedule: daily 09:00\nprompt: morning briefing",
-            channel_id=100,
-            author="user",
-        )
-        assert "알람 등록 완료" in result
-        assert "매일 09:00" in result
-
-    @pytest.mark.asyncio
-    async def test_cancel_alarm_not_found(self):
-        brain, _, _ = _make_brain()
-        result = await brain.execute_action("CANCEL_ALARM", "nonexistent_id")
-        assert "찾을 수 없음" in result
-
-    @pytest.mark.asyncio
-    async def test_set_alarm_no_context(self):
-        brain, _, _ = _make_brain()
-        result = await brain.execute_action("SET_ALARM", "schedule: daily 09:00\nprompt: hi")
-        assert "메시지 컨텍스트 없음" in result
-
-    @pytest.mark.asyncio
-    async def test_search_no_client(self):
-        brain, _, _ = _make_brain()
-        result = await brain.execute_action("SEARCH_NEWS", "query")
         assert "연결되지 않았음" in result
 
     @pytest.mark.asyncio

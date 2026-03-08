@@ -19,17 +19,9 @@ BOT_NAME_ALIASES: Dict[str, str] = {
     "threads": "threads",
     "threadsbot": "threads",
     "stitch": "threads",
-    "linkedin": "linkedin",
-    "linkedinbot": "linkedin",
-    "summit": "linkedin",
     "instagram": "instagram",
     "instagrambot": "instagram",
     "pixel": "instagram",
-    "news": "news",
-    "newsbot": "news",
-    "radar": "news",
-    "researcher": "news",
-    "researcherbot": "news",
     "hr": "hr",
     "hrbot": "hr",
 }
@@ -73,8 +65,9 @@ async def fire_bot(
     bot_or_msg.cancel_own_tasks()
     bot_or_msg.active = False
     bot_or_msg.clear_history()
+    bot_or_msg.clear_persona()
     _log(f"[{caller}] FIRED: {bot_or_msg.bot_name} (key={key})")
-    return f"[{caller}] {bot_or_msg.bot_name} 해고 처리 완료됨. 컨텍스트 초기화, 진행 중 작업 취소됨."
+    return f"[{caller}] {bot_or_msg.bot_name} 해고 처리 완료됨. 페르소나/기억/컨텍스트 전부 초기화, 진행 중 작업 취소됨."
 
 
 async def hire_bot(

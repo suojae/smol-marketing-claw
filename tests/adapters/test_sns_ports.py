@@ -41,23 +41,11 @@ class TestSNSPortConformance:
         assert hasattr(client, "is_configured")
         assert hasattr(client, "post")
 
-    def test_linkedin_client_has_interface(self):
-        from src.adapters.sns.linkedin import LinkedInClient
-        client = LinkedInClient()
-        assert hasattr(client, "is_configured")
-        assert hasattr(client, "post")
-
     def test_instagram_client_has_interface(self):
         from src.adapters.sns.instagram import InstagramClient
         client = InstagramClient()
         assert hasattr(client, "is_configured")
         assert hasattr(client, "post")
-
-    def test_news_client_has_interface(self):
-        from src.adapters.sns.news import NewsClient
-        client = NewsClient()
-        assert hasattr(client, "is_configured")
-        assert hasattr(client, "search")
 
 
 class TestLLMPortConformance:
@@ -87,14 +75,6 @@ class TestAdapterReexports:
         from src.adapters.sns.threads import ThreadsClient
         assert ThreadsClient is not None
 
-    def test_linkedin_client(self):
-        from src.adapters.sns.linkedin import LinkedInClient
-        assert LinkedInClient is not None
-
     def test_instagram_client(self):
         from src.adapters.sns.instagram import InstagramClient
         assert InstagramClient is not None
-
-    def test_news_client(self):
-        from src.adapters.sns.news import NewsClient
-        assert NewsClient is not None

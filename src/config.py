@@ -56,13 +56,9 @@ CONFIG = {
     # Threads (Meta)
     "threads_user_id": os.getenv("THREADS_USER_ID", ""),
     "threads_access_token": os.getenv("THREADS_ACCESS_TOKEN", ""),
-    # LinkedIn
-    "linkedin_access_token": os.getenv("LINKEDIN_ACCESS_TOKEN", ""),
     # Instagram (Meta Graph API)
     "instagram_user_id": os.getenv("INSTAGRAM_USER_ID", ""),
     "instagram_access_token": os.getenv("INSTAGRAM_ACCESS_TOKEN", ""),
-    # News (X Search API)
-    "news_x_bearer_token": os.getenv("NEWS_X_BEARER_TOKEN", ""),
     # Usage limits
     "usage_limits": {
         "max_calls_per_minute": 60,
@@ -78,23 +74,23 @@ CONFIG = {
     in ("1", "true", "yes", "on"),
 }
 
+def _int_env(key: str) -> int:
+    val = os.getenv(key, "").strip()
+    return int(val) if val else 0
+
 # Discord multi-bot channel IDs
 DISCORD_CHANNELS = {
-    "team": int(os.getenv("DISCORD_TEAM_CHANNEL_ID", "0")),
-    "test": int(os.getenv("DISCORD_TEST_CHANNEL_ID", "0")),
-    "threads": int(os.getenv("DISCORD_THREADS_CHANNEL_ID", "0")),
-    "linkedin": int(os.getenv("DISCORD_LINKEDIN_CHANNEL_ID", "0")),
-    "instagram": int(os.getenv("DISCORD_INSTAGRAM_CHANNEL_ID", "0")),
-    "news": int(os.getenv("DISCORD_NEWS_CHANNEL_ID", "0")),
-    "hr": int(os.getenv("DISCORD_HR_CHANNEL_ID", "0")),
+    "team": _int_env("DISCORD_TEAM_CHANNEL_ID"),
+    "test": _int_env("DISCORD_TEST_CHANNEL_ID"),
+    "threads": _int_env("DISCORD_THREADS_CHANNEL_ID"),
+    "instagram": _int_env("DISCORD_INSTAGRAM_CHANNEL_ID"),
+    "hr": _int_env("DISCORD_HR_CHANNEL_ID"),
 }
 
 # Discord multi-bot tokens
 DISCORD_TOKENS = {
     "threads": os.getenv("DISCORD_THREADS_TOKEN", ""),
-    "linkedin": os.getenv("DISCORD_LINKEDIN_TOKEN", ""),
     "instagram": os.getenv("DISCORD_INSTAGRAM_TOKEN", ""),
-    "news": os.getenv("DISCORD_NEWS_TOKEN", ""),
     "hr": os.getenv("DISCORD_HR_TOKEN", ""),
 }
 
@@ -120,10 +116,8 @@ class SNSConfig:
     x_access_token_secret: str = ""
     threads_user_id: str = ""
     threads_access_token: str = ""
-    linkedin_access_token: str = ""
     instagram_user_id: str = ""
     instagram_access_token: str = ""
-    news_x_bearer_token: str = ""
 
 
 @dataclass
@@ -161,10 +155,8 @@ class AppConfig:
                 x_access_token_secret=CONFIG["x_access_token_secret"],
                 threads_user_id=CONFIG["threads_user_id"],
                 threads_access_token=CONFIG["threads_access_token"],
-                linkedin_access_token=CONFIG["linkedin_access_token"],
                 instagram_user_id=CONFIG["instagram_user_id"],
                 instagram_access_token=CONFIG["instagram_access_token"],
-                news_x_bearer_token=CONFIG["news_x_bearer_token"],
             ),
             discord=DiscordConfig(
                 channels=dict(DISCORD_CHANNELS),
